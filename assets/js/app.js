@@ -77,6 +77,8 @@ function renderShell() {
   $('#topbar').innerHTML = `
     <div class="brand"><span class="logo-sm">My Little <b>Rockstar</b></span></div>
     <div class="who"><b>${esc(r.stageName)}</b> <span class="muted">· ${esc(G.state.band.name)}</span>
+      <div class="lvl" title="Level"><span>Lv ${r.level}</span><div class="meter purple" role="progressbar" aria-label="Experience toward level ${r.level + 1}" aria-valuenow="${r.xp}" aria-valuemin="0" aria-valuemax="${r.xpNext}"><div style="width:${Math.min(100, r.xp / r.xpNext * 100)}%"></div></div>
+      <small>${num(r.xp)} / ${num(r.xpNext)} XP</small>${r.skillPoints ? `<button class="btn small gold" id="ptsBtn">+${r.skillPoints} skill points</button>` : ''}</div>
       <div class="fame" title="Fame"><span>${esc(t.name)}</span><div class="meter gold" role="progressbar" aria-label="Fame toward next tier" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100"><div style="width:${pct}%"></div></div>
       <small>${num(r.fame)}${t.next ? ' / ' + num(t.next) : ''} fame</small></div></div>
     <div class="nums">
@@ -91,6 +93,7 @@ function renderShell() {
   $('#restBtn').addEventListener('click', async () => { try { await api('rest'); render(); } catch {} });
   $('#logoutBtn').addEventListener('click', async () => { await api('logout').catch(() => {}); location.reload(); });
   $('#settingsBtn').addEventListener('click', openSettings);
+  $('#ptsBtn')?.addEventListener('click', () => { G.tab = 'home'; render(); $('#skillsCard')?.scrollIntoView({ block: 'center' }); });
 }
 
 function render() {
@@ -107,11 +110,14 @@ function openSettings() {
   const b = modal(`<h2 id="modalTitle">Settings</h2>
     <fieldset class="ctl"><legend>Typing difficulty</legend>${Object.entries(Stage.DIFFICULTY).map(([k, d]) =>
       `<label class="radio"><input type="radio" name="diff" value="${k}" ${s.difficulty === k ? 'checked' : ''}> ${esc(d.label)}</label>`).join('')}</fieldset>
-    <label class="toggle"><input type="checkbox" name="callouts" ${s.callouts ? 'checked' : ''}> Call-outs: speak each word before it arrives (play by ear)</label>
+    <fieldset class="ctl"><legend>When playing live, play…</legend>
+      <label class="radio"><input type="radio" name="part" value="instrument" ${s.part !== 'lyrics' ? 'checked' : ''}> My instrument part (notes on keys)</label>
+      <label class="radio"><input type="radio" name="part" value="lyrics" ${s.part === 'lyrics' ? 'checked' : ''}> The lyrics (type the words)</label></fieldset>
+    <label class="toggle"><input type="checkbox" name="callouts" ${s.callouts ? 'checked' : ''}> Call-outs: speak each word or key before it arrives (play by ear)</label>
     <label class="ctl">Music volume <input type="range" name="volume" min="0" max="1" step="0.05" value="${s.volume}"></label>
     <div class="row end"><button class="btn primary" id="sSave">Save</button></div>`);
   $('#sSave', b).addEventListener('click', () => {
-    Stage.saveSettings({ difficulty: $('input[name=diff]:checked', b).value, callouts: $('input[name=callouts]', b).checked, volume: +$('input[name=volume]', b).value });
+    Stage.saveSettings({ part: $('input[name=part]:checked', b).value, difficulty: $('input[name=diff]:checked', b).value, callouts: $('input[name=callouts]', b).checked, volume: +$('input[name=volume]', b).value });
     closeModal(); toast('Settings saved.');
   });
 }
@@ -125,17 +131,20 @@ function viewHome(main) {
       <div class="scene-caption"><h1>${esc(band.name)}</h1><p>${esc(G.game.genres[band.genre].name)} · chemistry ${band.chemistry}</p></div>
     </section>
     <div class="grid3">
-      <section class="card"><h2>Skills</h2>${Object.entries(G.game.skills).map(([k, l]) => meter(l, r.skills[k])).join('')}
+      <section class="card" id="skillsCard"><h2>Skills ${r.skillPoints ? `<span class="tag gold">${r.skillPoints} points to spend</span>` : ''}</h2>
+        ${Object.entries(G.game.skills).map(([k, l]) => `<div class="skill-row">${meter(l, r.skills[k])}${r.skillPoints ? `<button class="btn small" data-pt="${k}" aria-label="Spend a point on ${esc(l)}">+2</button>` : ''}</div>`).join('')}
         <p class="muted">Best typing speed: <b>${r.bestWpm} WPM</b> · Gigs played: <b>${r.gigsPlayed}</b></p></section>
       <section class="card"><h2>What next?</h2>${nextSteps().map(s => `<button class="btn block" data-go="${s.tab}">${esc(s.text)}</button>`).join('')}</section>
       <section class="card"><h2>Rock news</h2><ul class="news">${G.state.news.map(n => `<li class="n-${n.kind}">${esc(n.text)}</li>`).join('') || '<li>Nothing yet.</li>'}</ul></section>
     </div>`;
   $$('[data-go]', main).forEach(b => b.addEventListener('click', () => { G.tab = b.dataset.go; render(); }));
+  $$('[data-pt]', main).forEach(b => b.addEventListener('click', async () => { try { await api('spend_point', { skill: b.dataset.pt }, { quiet: true }); render(); toast('Skill improved!'); } catch (e) { toast(e.message, 'bad'); } }));
 }
 function nextSteps() {
   const s = [], songs = G.state.songs, mates = G.state.band.members;
   if (!songs.length) s.push({ tab: 'songs', text: '✍️ Write your first song' });
   if (!mates.length) s.push({ tab: 'band', text: '🧑‍🎤 Recruit a bandmate' });
+  if (songs.some(x => !x.learned)) s.push({ tab: 'songs', text: '🎯 Learn a song (play it once to unlock autopilot)' });
   if (songs.length && songs.every(x => x.tightness < 30)) s.push({ tab: 'songs', text: '🔁 Rehearse a song until it\'s tight' });
   if (songs.length) s.push({ tab: 'gigs', text: '🎤 Play a gig' });
   s.push({ tab: 'practice', text: '🎯 Practice a skill' });
@@ -148,16 +157,19 @@ function nextSteps() {
 function viewPractice(main) {
   const r = R();
   main.innerHTML = `<section class="card"><h2>Practice room</h2>
-    <p class="muted">Pick a skill and play a typing drill. Better accuracy = bigger gains. Costs ${G.game.costs.practice} energy.</p>
-    <div class="skill-grid">${Object.entries(G.game.skills).map(([k, l]) => `<button class="skill-card" data-skill="${k}"><b>${esc(l)}</b><span>${r.skills[k]}</span>
-      <div class="meter"><div style="width:${r.skills[k]}%"></div></div></button>`).join('')}</div></section>`;
+    <p class="muted">Practice on autopilot for steady gains, or <b>play it live</b> for bigger gains and bonus XP (up to 2×). Costs ${G.game.costs.practice} energy.</p>
+    <div class="skill-grid">${Object.entries(G.game.skills).map(([k, l]) => `<div class="skill-card"><b>${esc(l)}</b><span>${r.skills[k]}</span>
+      <div class="meter"><div style="width:${r.skills[k]}%"></div></div>
+      <div class="row"><button class="btn small" data-auto="${k}">🤖 Auto</button><button class="btn small primary" data-skill="${k}">🎸 Live</button></div></div>`).join('')}</div></section>`;
   $$('[data-skill]', main).forEach(b => b.addEventListener('click', () => runPractice(b.dataset.skill)));
+  $$('[data-auto]', main).forEach(b => b.addEventListener('click', async () => { try { await api('practice_auto', { skill: b.dataset.auto }); render(); } catch {} }));
 }
 
 async function runPractice(skill) {
   let start; try { start = await api('practice_start', { skill }, {}); } catch { return; }
   const o = overlay(performanceScreen('garage.jpg', 'Practice: ' + G.game.skills[skill], false));
-  const result = await Stage.play($('.perf-typer', o), start.chart, { label: 'Practice drill', onHit: k => avatarReact(o, k) });
+  const part = skill === 'vocals' || skill === 'songwriting' || skill === 'charisma' ? 'lyrics' : undefined;
+  const result = await Stage.play($('.perf-typer', o), start.chart, { label: 'Practice drill', part, instrument: R().instrument, onHit: k => avatarReact(o, k) });
   closeOverlay();
   if (!result) { toast('Practice stopped.', 'bad'); return; }
   try { await api('practice_finish', { token: start.token, result }); render(); } catch {}
@@ -190,12 +202,13 @@ function viewSongs(main) {
       <p class="muted">Quality comes from songwriting. Tightness comes from rehearsing (typing it with the band). Tight songs can be released as singles for streams and fans.</p>
       ${songs.length ? `<table class="songs"><thead><tr><th><span class="sr-only">Select</span></th><th>Song</th><th>Quality</th><th>Tightness</th><th>Played</th><th></th></tr></thead><tbody>
         ${songs.map(s => `<tr><td><input type="checkbox" class="pick" value="${s.id}" aria-label="Select ${esc(s.title)} for rehearsal"></td>
-          <td><b>${esc(s.title)}</b><br><small class="muted">${esc(G.game.genres[s.genre].name)} · ${esc(G.game.themes[s.theme].name)} · ${s.bpm} BPM</small></td>
+          <td><b>${esc(s.title)}</b> ${s.learned ? '<span class="tag good">✓ Learned</span>' : '<span class="tag">Not learned</span>'}<br><small class="muted">${esc(G.game.genres[s.genre].name)} · ${esc(G.game.themes[s.theme].name)} · ${s.bpm} BPM</small></td>
           <td>${meter('', s.quality, 'compact')}</td><td>${meter('', s.tightness, 'compact')}</td><td>${s.timesPlayed}</td>
           <td>${s.released ? `<span class="tag">💿 ${num(s.streams)} streams</span>` : `<button class="btn small" data-release="${s.id}" ${s.tightness < 30 ? 'disabled title="Rehearse to 30 tightness first"' : ''}>Release (${money(costs.record)})</button>`}
+            ${s.learned ? '' : `<button class="btn small primary" data-learn="${s.id}">🎯 Learn it</button>`}
             <button class="btn small ghost" data-lyrics="${s.id}">Lyrics</button></td></tr>`).join('')}</tbody></table>
-        <div class="row"><button class="btn" id="rehearseBtn">🔁 Rehearse selected (1–3)</button>
-          <span class="muted">Costs ${costs.rehearse} energy${G.state.band.members.length ? ` and ${money(costs.room)} room rent` : ''}.</span></div>`
+        <div class="row"><button class="btn" id="rehearseAuto">🤖 Auto rehearse selected</button><button class="btn primary" id="rehearseBtn">🎸 Rehearse live (bonus XP)</button>
+          <span class="muted">Pick 1–3 songs. Costs ${costs.rehearse} energy${G.state.band.members.length ? ` and ${money(costs.room)} room rent` : ''}. Autopilot needs learned songs; playing live teaches them.</span></div>`
       : '<p>No songs yet. Write one!</p>'}
     </section>`;
   $('#writeBtn').addEventListener('click', writeSongDialog);
@@ -204,11 +217,10 @@ function viewSongs(main) {
     const s = songs.find(x => x.id === +b.dataset.lyrics);
     modal(`<h2 id="modalTitle">${esc(s.title)}</h2><pre class="lyrics">${esc(s.lyrics.join('\n'))}</pre><div class="row end"><button class="btn" onclick="closeModal()">Close</button></div>`);
   }));
-  $('#rehearseBtn')?.addEventListener('click', () => {
-    const ids = $$('.pick:checked', main).map(x => +x.value);
-    if (!ids.length || ids.length > 3) return toast('Select 1 to 3 songs to rehearse.', 'bad');
-    runRehearsal(ids);
-  });
+  const picked = () => { const ids = $$('.pick:checked', main).map(x => +x.value); if (!ids.length || ids.length > 3) { toast('Select 1 to 3 songs to rehearse.', 'bad'); return null; } return ids; };
+  $('#rehearseBtn')?.addEventListener('click', () => { const ids = picked(); if (ids) runRehearsal(ids); });
+  $('#rehearseAuto')?.addEventListener('click', async () => { const ids = picked(); if (!ids) return; try { await api('rehearse_auto', { songs: ids }); render(); } catch {} });
+  $$('[data-learn]', main).forEach(b => b.addEventListener('click', () => runLearn(+b.dataset.learn)));
 }
 
 function writeSongDialog() {
@@ -235,12 +247,21 @@ function writeSongDialog() {
   });
 }
 
+async function runLearn(songId) {
+  let start; try { start = await api('learn_start', { song: songId }); } catch { return; }
+  const o = overlay(performanceScreen('garage.jpg', 'Learning: ' + start.charts[0].title, false));
+  const result = await Stage.play($('.perf-typer', o), start.charts[0], { label: `Score ${G.game.costs.learnAcc}%+ to learn it`, instrument: R().instrument, onHit: k => avatarReact(o, k) });
+  closeOverlay();
+  if (!result) { toast('Stopped.', 'bad'); return; }
+  try { await api('learn_finish', { token: start.token, result }); render(); } catch {}
+}
+
 async function runRehearsal(ids) {
   let start; try { start = await api('rehearse_start', { songs: ids }); } catch { return; }
   const o = overlay(performanceScreen('garage.jpg', 'Band rehearsal', false));
   const results = [];
   for (let i = 0; i < start.charts.length; i++) {
-    const res = await Stage.play($('.perf-typer', o), start.charts[i], { label: `Song ${i + 1} of ${start.charts.length}`, onHit: k => avatarReact(o, k) });
+    const res = await Stage.play($('.perf-typer', o), start.charts[i], { label: `Song ${i + 1} of ${start.charts.length}`, instrument: R().instrument, onHit: k => avatarReact(o, k) });
     if (!res) { closeOverlay(); toast('Rehearsal stopped.', 'bad'); return; }
     results.push(res);
   }
@@ -305,31 +326,40 @@ function viewGigs(main) {
 function setlistDialog(venueKey) {
   const v = G.game.venues[venueKey], songs = G.state.songs;
   if (songs.length < v.songs[0]) return toast(`You need at least ${v.songs[0]} song(s) for ${v.name}.`, 'bad');
-  const b = modal(`<h2 id="modalTitle">Setlist for ${esc(v.name)}</h2><p class="muted">Pick ${v.songs[0]}–${v.songs[1]} songs, in order.</p>
-    <div class="setlist">${songs.map(s => `<label class="set-song"><input type="checkbox" value="${s.id}"> <b>${esc(s.title)}</b>
-      <small>Q ${s.quality} · Tight ${s.tightness} · ${s.bpm} BPM</small></label>`).join('')}</div>
+  const b = modal(`<h2 id="modalTitle">Setlist for ${esc(v.name)}</h2>
+    <p class="muted">Pick ${v.songs[0]}–${v.songs[1]} songs, in order. For each, choose <b>Live</b> (you play it: bonus XP, fans and a crowd boost) or <b>Auto</b> (learned songs only).</p>
+    <div class="setlist">${songs.map(s => `<div class="set-song"><label><input type="checkbox" value="${s.id}"> <b>${esc(s.title)}</b></label>
+      <small>Q ${s.quality} · Tight ${s.tightness} · ${s.bpm} BPM</small>
+      <select data-mode="${s.id}" aria-label="How to play ${esc(s.title)}"><option value="live">🎸 Live</option><option value="auto" ${s.learned ? '' : 'disabled'}>🤖 Auto${s.learned ? '' : ' (learn first)'}</option></select></div>`).join('')}</div>
     <div class="row end"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" id="goGig">Take the stage 🤘</button></div>`);
   $('#goGig', b).addEventListener('click', () => {
     const ids = $$('input:checked', b).map(x => +x.value);
     if (ids.length < v.songs[0] || ids.length > v.songs[1]) return toast(`Pick ${v.songs[0]}–${v.songs[1]} songs.`, 'bad');
-    closeModal(); runGig(venueKey, ids);
+    const modes = ids.map(id => $(`[data-mode="${id}"]`, b).value);
+    closeModal(); runGig(venueKey, ids, modes);
   });
 }
 
-async function runGig(venueKey, ids) {
-  let start; try { start = await api('gig_start', { venue: venueKey, songs: ids }); } catch { return; }
+async function runGig(venueKey, ids, modes) {
+  let start; try { start = await api('gig_start', { venue: venueKey, songs: ids, modes }); } catch { return; }
   const v = start.venue, r = R();
   const o = overlay(performanceScreen(v.art, v.name, Math.round(Math.log10(v.cap) * 12), { hype: true }));
   const hypeBar = $('.hype .meter div', o);
   const results = [], moves = [];
   for (let i = 0; i < start.charts.length; i++) {
-    const res = await Stage.play($('.perf-typer', o), start.charts[i], {
-      label: `Song ${i + 1} of ${start.charts.length}`,
-      onHype: h => { hypeBar.style.width = h + '%'; o.querySelector('.crowd')?.style.setProperty('--hype', (h / 100).toFixed(2)); },
-      onHit: k => avatarReact(o, k),
-    });
-    if (!res) { closeOverlay(); toast('You walked off stage. The show was cancelled.', 'bad'); return; }
-    results.push(res);
+    const label = `Song ${i + 1} of ${start.charts.length}`;
+    if (start.modes[i] === 'auto') {
+      await Stage.autoplay($('.perf-typer', o), start.charts[i], { label, onHit: k => avatarReact(o, k) });
+      results.push(null);
+    } else {
+      const res = await Stage.play($('.perf-typer', o), start.charts[i], {
+        label, instrument: r.instrument,
+        onHype: h => { hypeBar.style.width = h + '%'; o.querySelector('.crowd')?.style.setProperty('--hype', (h / 100).toFixed(2)); },
+        onHit: k => avatarReact(o, k),
+      });
+      if (!res) { closeOverlay(); toast('You walked off stage. The show was cancelled.', 'bad'); return; }
+      results.push(res);
+    }
     moves.push(await stageMoment($('.perf-typer', o), v, i, start.charts.length, res));
   }
   $('.perf-typer', o).innerHTML = '<p class="center big">The crowd is roaring… tallying the night.</p>';
@@ -343,7 +373,7 @@ async function runGig(venueKey, ids) {
 function stageMoment(box, v, i, total, res) {
   return new Promise(resolve => {
     const moves = Object.entries(G.game.moves).filter(([, m]) => !m.minTier || m.minTier <= v.tier);
-    box.innerHTML = `<h3>${i + 1 < total ? 'Between songs' : 'Big finish'} — ${Math.round(res.accuracy)}% accuracy, ${res.wpm} WPM</h3>
+    box.innerHTML = `<h3>${i + 1 < total ? 'Between songs' : 'Big finish'}${res ? ` — ${Math.round(res.accuracy)}% accuracy${res.wpm ? `, ${res.wpm} WPM` : ''}` : ' — the band nailed it on autopilot'}</h3>
       <p class="muted">Pull a stage move? Riskier moves pay off big… or flop.</p>
       <div class="moves">${moves.map(([k, m]) => `<button class="btn move" data-m="${k}"><b>${esc(m.name)}</b><small>${esc(m.desc)} · risk ${'🔥'.repeat(m.risk)}${m.cost ? ' · ' + money(m.cost) : ''} · ${esc(G.game.skills[m.skill])}</small></button>`).join('')}
       <button class="btn ghost move" data-m=""><b>Just play</b><small>No risk</small></button></div>`;
@@ -355,13 +385,14 @@ function stageMoment(box, v, i, total, res) {
 function showResults(o, v, x) {
   const box = $('.perf-typer', o);
   box.classList.add('results');
-  box.innerHTML = `<h2>${stars(x.stars)} ${x.tierUp ? `<span class="tag gold">New tier: ${esc(x.tier)}!</span>` : ''}</h2>
+  box.innerHTML = `<h2>${stars(x.stars)} ${x.tierUp ? `<span class="tag gold">New tier: ${esc(x.tier)}!</span>` : ''} ${x.levelUp ? `<span class="tag gold">Level ${x.level}!</span>` : ''}</h2>
     <p class="review">“${esc(x.review)}”</p>
     <div class="result-grid">
       <div><b>${x.perf}</b><small>Performance</small></div><div><b>${num(x.attendance)}</b><small>Crowd</small></div>
       <div><b>+${num(x.fans)}</b><small>New fans</small></div><div><b>+${num(x.fame)}</b><small>Fame</small></div>
-      <div><b>${x.accuracy}%</b><small>Typing accuracy</small></div><div><b>${x.wpm}</b><small>Best WPM</small></div>
+      <div><b>${x.accuracy}%</b><small>Accuracy</small></div><div><b>+${num(x.xp)}</b><small>XP${x.xpMult > 1 ? ` (live ×${x.xpMult})` : ''}</small></div>
     </div>
+    <p class="muted">${x.liveSongs} song(s) played live, ${x.autoSongs} on autopilot.${x.learned?.length ? ` Learned: ${x.learned.map(esc).join(', ')}!` : ''}</p>
     <p>Gross ${money(x.gross)} − wages ${money(x.wages)}${x.moveCost ? ` − effects ${money(x.moveCost)}` : ''} = <b>${money(x.net)}</b></p>
     ${x.moves.length ? `<ul>${x.moves.map(m => `<li>${m.ok ? '✅' : '💥'} ${esc(m.move)}</li>`).join('')}</ul>` : ''}
     <div class="row end"><button class="btn primary" id="doneGig">Back to the garage</button></div>`;

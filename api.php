@@ -49,7 +49,7 @@ try {
                 'tiers' => FAME_TIERS, 'venues' => VENUES, 'moves' => MOVES, 'themes' => array_map(fn($t) => ['name' => $t['name'], 'genres' => $t['genres']], SONG_THEMES),
                 'roles' => BAND_ROLES, 'personalities' => PERSONALITIES, 'maxBand' => MAX_BAND,
                 'costs' => ['rest' => REST_ENERGY, 'practice' => PRACTICE_ENERGY, 'write' => WRITE_ENERGY, 'rehearse' => REHEARSE_ENERGY,
-                    'gig' => GIG_ENERGY, 'hangout' => HANGOUT_COST, 'record' => RECORD_COST, 'room' => REHEARSAL_ROOM_COST],
+                    'gig' => GIG_ENERGY, 'learn' => LEARN_ENERGY, 'learnAcc' => LEARN_ACCURACY, 'hangout' => HANGOUT_COST, 'record' => RECORD_COST, 'room' => REHEARSAL_ROOM_COST],
             ]);
 
         case 'register': {
@@ -101,7 +101,12 @@ try {
         case 'practice_finish':out(with_state($tx(fn() => act_practice_finish(load_rockstar(uid()), (string)($in['token'] ?? ''), $in['result'] ?? []))));
         case 'rehearse_start': out(act_rehearse_start(load_rockstar(uid()), (array)($in['songs'] ?? [])));
         case 'rehearse_finish':out(with_state($tx(fn() => act_rehearse_finish(load_rockstar(uid()), (string)($in['token'] ?? ''), (array)($in['results'] ?? [])))));
-        case 'gig_start':      out(act_gig_start(load_rockstar(uid()), (string)($in['venue'] ?? ''), (array)($in['songs'] ?? [])));
+        case 'gig_start':      out(act_gig_start(load_rockstar(uid()), (string)($in['venue'] ?? ''), (array)($in['songs'] ?? []), (array)($in['modes'] ?? [])));
+        case 'practice_auto':  out(with_state($tx(fn() => act_practice_auto(load_rockstar(uid()), (string)($in['skill'] ?? '')))));
+        case 'rehearse_auto':  out(with_state($tx(fn() => act_rehearse_auto(load_rockstar(uid()), (array)($in['songs'] ?? [])))));
+        case 'learn_start':    out(act_learn_start(load_rockstar(uid()), (int)($in['song'] ?? 0)));
+        case 'learn_finish':   out(with_state($tx(fn() => act_learn_finish(load_rockstar(uid()), (string)($in['token'] ?? ''), $in['result'] ?? []))));
+        case 'spend_point':    out(with_state($tx(fn() => act_spend_point(load_rockstar(uid()), (string)($in['skill'] ?? '')))));
         case 'gig_finish':     out(with_state($tx(fn() => act_gig_finish(load_rockstar(uid()), (string)($in['token'] ?? ''), (array)($in['results'] ?? []), (array)($in['moves'] ?? [])))));
 
         case 'leaderboard': {

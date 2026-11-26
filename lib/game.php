@@ -84,7 +84,7 @@ function tick(array $r): array
 function save_rockstar(array $r): void
 {
     $cols = ['musicianship', 'vocals', 'songwriting', 'stagecraft', 'charisma', 'stamina', 'energy', 'mood', 'cash', 'fame', 'fans',
-        'gigs_played', 'best_wpm', 'last_rest', 'last_tick', 'appearance', 'bio', 'pronouns', 'gender', 'stage_name', 'real_name', 'hometown', 'age'];
+        'gigs_played', 'best_wpm', 'xp', 'level', 'skill_points', 'last_rest', 'last_tick', 'appearance', 'bio', 'pronouns', 'gender', 'stage_name', 'real_name', 'hometown', 'age'];
     $sql = 'UPDATE rockstars SET ' . implode(', ', array_map(fn($c) => "$c = ?", $cols)) . ' WHERE id = ?';
     db()->prepare($sql)->execute([...array_map(fn($c) => $r[$c], $cols), $r['id']]);
 }
@@ -133,6 +133,53 @@ function gain_fame(array &$r, int $fame): array
     $after = fame_tier((int)$r['fame']);
     if ($after['name'] !== $before['name']) news((int)$r['id'], 'milestone', "You are now a {$after['name']}! New venues and gear unlocked.");
     return ['tierUp' => $after['name'] !== $before['name'], 'tier' => $after['name']];
+}
+
+/* =============================================================== XP & levels */
+
+function xp_for_level(int $level): int { return (int)round(100 * pow($level, 1.45)); }
+
+/** Live play multiplies XP: 1.25x at 0% accuracy up to 2x at 100%. */
+function live_mult(float $acc): float { return LIVE_XP_BASE + LIVE_XP_PER_ACC * clampf($acc, 0, 100); }
+
+function add_xp(array &$r, float $xp): array
+{
+    $xp = (int)round($xp);
+    $r['xp'] += $xp;
+    $levels = 0;
+    while ($r['xp'] >= xp_for_level((int)$r['level'])) {
+        $r['xp'] -= xp_for_level((int)$r['level']);
+        $r['level']++;
+        $r['skill_points'] += SKILL_POINTS_PER_LEVEL;
+        $levels++;
+    }
+    if ($levels) news((int)$r['id'], 'milestone', "Level up! {$r['stage_name']} is now level {$r['level']}. +" . SKILL_POINTS_PER_LEVEL * $levels . ' skill points.');
+    return ['xp' => $xp, 'levelUp' => $levels > 0, 'level' => (int)$r['level']];
+}
+
+function act_spend_point(array $r, string $skill): array
+{
+    if (!isset(SKILLS[$skill])) fail('Unknown skill.');
+    if ($r['skill_points'] < 1) fail('No skill points left. Level up to earn more.');
+    if ($r[$skill] >= 100) fail('That skill is maxed out.');
+    $r['skill_points']--;
+    $r[$skill] = min(100, $r[$skill] + 2);
+    save_rockstar($r);
+    return ['message' => SKILLS[$skill] . ' +2.'];
+}
+
+/** What autopilot "plays" like: skill, tightness and chemistry decide it. */
+function auto_accuracy(array $r, array $song, float $chemistry): float
+{
+    $main = $r['instrument'] === 'vocals' ? $r['vocals'] : $r['musicianship'];
+    return round(clampf(30 + $main * 0.4 + $song['tightness'] * 0.22 + $chemistry * 0.1 + frand(-5, 5), 20, 90), 1);
+}
+
+function mark_learned(int $songId): bool
+{
+    $st = db()->prepare('UPDATE songs SET learned = 1 WHERE id = ? AND learned = 0');
+    $st->execute([$songId]);
+    return $st->rowCount() > 0;
 }
 
 /* =============================================================== creation */
@@ -258,7 +305,7 @@ function act_practice_start(array $r, string $skill): array
     $seed = mt_rand();
     $bpm = mt_rand(96, 132);
     return ['token' => start_run('practice', ['skill' => $skill, 'seed' => $seed], 1),
-        'chart' => ['title' => SKILLS[$skill] . ' drill', 'bpm' => $bpm, 'genre' => 'indie', 'lyrics' => make_lyrics($theme, $seed)]];
+        'chart' => ['title' => SKILLS[$skill] . ' drill', 'bpm' => $bpm, 'genre' => 'indie', 'lyrics' => make_lyrics($theme, $seed), 'seed' => $seed % 1000000]];
 }
 
 function act_practice_finish(array $r, string $token, $result): array
@@ -274,8 +321,52 @@ function act_practice_finish(array $r, string $token, $result): array
     $r['energy'] -= PRACTICE_ENERGY * (1 - $r['stamina'] / 250);
     $r['mood'] = clampf($r['mood'] + ($res['accuracy'] >= 70 ? 3 : -2), 0, 100);
     $r['best_wpm'] = max((int)$r['best_wpm'], $res['wpm']);
+    $x = add_xp($r, (8 + $res['accuracy'] / 10) * live_mult($res['accuracy']));
     save_rockstar($r);
-    return ['message' => sprintf('%s +%.1f (now %.1f). %d WPM.', SKILLS[$skill], $gain, $r[$skill], $res['wpm']), 'gain' => $gain];
+    return ['message' => sprintf('%s +%.1f (now %.1f).%s +%d XP (live bonus x%.2f)', SKILLS[$skill], $gain, $r[$skill], $res['wpm'] ? " {$res['wpm']} WPM." : '', $x['xp'], live_mult($res['accuracy'])),
+        'gain' => $gain] + $x;
+}
+
+function act_practice_auto(array $r, string $skill): array
+{
+    if (!isset(SKILLS[$skill])) fail('Unknown skill.');
+    need_energy($r, PRACTICE_ENERGY);
+    $mul = (trait_is($r, 'perfectionist') ? 1.25 : 1) * (perk($r, 'practice_gain') ? 1.15 : 1);
+    $cur = (float)$r[$skill];
+    $gain = round(2.2 * AUTO_SKILL_RATE * $mul * max(0.15, 1 - $cur / 110), 2);
+    $r[$skill] = min(100, $cur + $gain);
+    $r['energy'] -= PRACTICE_ENERGY * (1 - $r['stamina'] / 250);
+    $x = add_xp($r, 8);
+    save_rockstar($r);
+    return ['message' => sprintf('Autopilot practice: %s +%.1f, +%d XP. Practice live for bigger gains.', SKILLS[$skill], $gain, $x['xp'])] + $x;
+}
+
+/* ---------------------------------------------------------------- learning songs */
+
+function act_learn_start(array $r, int $songId): array
+{
+    need_energy($r, LEARN_ENERGY);
+    $songs = load_songs($r, [$songId], 1, 1);
+    return ['token' => start_run('learn', ['song' => $songId], 1), 'charts' => array_map('chart_of', $songs)];
+}
+
+function act_learn_finish(array $r, string $token, $result): array
+{
+    $p = finish_run($token, 'learn');
+    $res = clean_result($result);
+    need_energy($r, LEARN_ENERGY);
+    $r['energy'] -= LEARN_ENERGY;
+    $r['best_wpm'] = max((int)$r['best_wpm'], $res['wpm']);
+    if ($res['accuracy'] >= LEARN_ACCURACY) {
+        $new = mark_learned((int)$p['song']);
+        db()->prepare('UPDATE songs SET tightness = ' . sql_min() . '(100, tightness + 5) WHERE id = ?')->execute([$p['song']]);
+        $x = add_xp($r, (20 + $res['accuracy'] / 5) * live_mult($res['accuracy']));
+        save_rockstar($r);
+        return ['message' => ($new ? 'Song learned! It can now be played on autopilot. ' : 'Nice run! ') . "+{$x['xp']} XP.", 'learned' => true] + $x;
+    }
+    $x = add_xp($r, 6);
+    save_rockstar($r);
+    return ['message' => sprintf('%d%% — you need %d%% to learn it. Try again!', $res['accuracy'], LEARN_ACCURACY), 'learned' => false] + $x;
 }
 
 function act_write_song(array $r, array $in): array
@@ -308,6 +399,7 @@ function act_write_song(array $r, array $in): array
     $r['energy'] -= WRITE_ENERGY;
     $r['songwriting'] = min(100, $r['songwriting'] + 0.4);
     $r['mood'] = clampf($r['mood'] + 4, 0, 100);
+    add_xp($r, 15);
     save_rockstar($r);
     $word = $quality >= 80 ? 'a potential hit' : ($quality >= 60 ? 'a strong track' : ($quality >= 40 ? 'a decent song' : 'a rough demo'));
     news((int)$r['id'], 'song', "You wrote \"$title\" — $word.");
@@ -330,6 +422,7 @@ function act_release(array $r, int $songId): array
     $fans = (int)round($launch / 60 * (perk($r, 'fan_gain') ? 1.2 : 1));
     $r['fans'] += $fans;
     $tier = gain_fame($r, (int)round($fans / 2 + $s['quality'] / 4));
+    add_xp($r, 20);
     save_rockstar($r);
     news((int)$r['id'], 'release', "\"{$s['title']}\" is out! $launch streams on day one.");
     return ['message' => "\"{$s['title']}\" is released! $launch streams and $fans new fans.", 'tierUp' => $tier['tierUp']];
@@ -342,33 +435,58 @@ function act_rehearse_start(array $r, array $songIds): array
     return ['token' => start_run('rehearse', ['songs' => array_column($songs, 'id')], count($songs)), 'charts' => array_map('chart_of', $songs)];
 }
 
+/** Live rehearsal: typed results for every song. Typing a song here also teaches it. */
 function act_rehearse_finish(array $r, string $token, array $results): array
 {
     $p = finish_run($token, 'rehearse');
+    $songs = load_songs($r, $p['songs'], 1, 3);
+    $accs = []; $wpm = 0;
+    foreach ($songs as $i => $s) { $res = clean_result($results[$i] ?? []); $accs[] = $res['accuracy']; $wpm = max($wpm, $res['wpm']); }
+    return rehearse_apply($r, $songs, $accs, true, $wpm);
+}
+
+/** Autopilot rehearsal: instant, needs every song learned, no typing. */
+function act_rehearse_auto(array $r, array $songIds): array
+{
+    $songs = load_songs($r, $songIds, 1, 3);
+    foreach ($songs as $s) if (!$s['learned']) fail("\"{$s['title']}\" isn't learned yet. Type it once (Learn it or rehearse live) to unlock autopilot.");
+    $band = band_of($r);
+    $accs = array_map(fn($s) => auto_accuracy($r, $s, (float)$band['chemistry']), $songs);
+    return rehearse_apply($r, $songs, $accs, false, 0);
+}
+
+function rehearse_apply(array $r, array $songs, array $accs, bool $live, int $wpm): array
+{
     need_energy($r, REHEARSE_ENERGY);
     $band = band_of($r);
     $mates = bandmates((int)$band['id']);
     if ($mates) spend($r, REHEARSAL_ROOM_COST, 'the rehearsal room');
     $avgSkill = $mates ? array_sum(array_column($mates, 'skill')) / count($mates) : $r['musicianship'];
     $chemMul = array_product(array_map(fn($m) => PERSONALITIES[$m['personality']]['chem'], $mates) ?: [1]) ** (1 / max(1, count($mates)));
-    $out = []; $accSum = 0;
-    foreach ($p['songs'] as $i => $sid) {
-        $res = clean_result($results[$i] ?? []);
-        $accSum += $res['accuracy'];
-        $gain = (3 + $res['accuracy'] / 10) * (0.55 + $band['chemistry'] / 250 + $avgSkill / 250);
-        db()->prepare('UPDATE songs SET tightness = ' . sql_min() . '(100, tightness + ?) WHERE id = ?')->execute([round($gain, 1), $sid]);
-        $out[] = round($gain, 1);
-        $r['best_wpm'] = max((int)$r['best_wpm'], $res['wpm']);
+    $gains = []; $learnedNow = [];
+    foreach ($songs as $i => $s) {
+        $acc = $accs[$i];
+        $gain = (3 + $acc / 10) * (0.55 + $band['chemistry'] / 250 + $avgSkill / 250) * ($live ? 1.2 : 1);
+        db()->prepare('UPDATE songs SET tightness = ' . sql_min() . '(100, tightness + ?) WHERE id = ?')->execute([round($gain, 1), $s['id']]);
+        $gains[] = round($gain, 1);
+        if ($live && $acc >= LEARN_ACCURACY && mark_learned((int)$s['id'])) $learnedNow[] = $s['title'];
     }
-    $acc = $accSum / max(1, count($p['songs']));
+    $acc = array_sum($accs) / max(1, count($accs));
     $chem = (1 + $acc / 40) * $chemMul * (trait_is($r, 'leader') ? 1.3 : 1);
     db()->prepare('UPDATE bands SET chemistry = ' . sql_min() . '(100, chemistry + ?) WHERE id = ?')->execute([round($chem, 1), $band['id']]);
     foreach ($mates as $m) db()->prepare('UPDATE bandmates SET loyalty = ' . sql_min() . '(100, loyalty + ?) WHERE id = ?')->execute([$acc >= 60 ? 2 : 0.5, $m['id']]);
     $r['musicianship'] = min(100, $r['musicianship'] + 0.3 + $acc / 300);
     $r['energy'] -= REHEARSE_ENERGY * (1 - $r['stamina'] / 250);
     $r['mood'] = clampf($r['mood'] + ($acc >= 60 ? 4 : -3), 0, 100);
+    if ($wpm) $r['best_wpm'] = max((int)$r['best_wpm'], $wpm);
+    $baseXp = 12 * count($songs) + $acc / 5;
+    $mult = $live ? live_mult($acc) : 1;
+    $x = add_xp($r, $baseXp * $mult);
     save_rockstar($r);
-    return ['message' => sprintf('Rehearsal done: songs tightened by %s. Band chemistry +%.1f.', implode(', ', array_map(fn($g) => "+$g", $out)), $chem)];
+    $msg = sprintf('%s rehearsal: songs tightened %s, chemistry +%.1f, +%d XP%s.', $live ? 'Live' : 'Autopilot',
+        implode(' ', array_map(fn($g) => "+$g", $gains)), $chem, $x['xp'], $live ? sprintf(' (live bonus x%.2f)', $mult) : '');
+    if ($learnedNow) $msg .= ' Learned: ' . implode(', ', $learnedNow) . '!';
+    return ['message' => $msg, 'accuracy' => round($acc, 1), 'live' => $live] + $x;
 }
 
 function load_songs(array $r, array $ids, int $min, int $max): array
@@ -387,7 +505,8 @@ function load_songs(array $r, array $ids, int $min, int $max): array
 
 function chart_of(array $s): array
 {
-    return ['id' => (int)$s['id'], 'title' => $s['title'], 'bpm' => (int)$s['bpm'], 'genre' => $s['genre'], 'lyrics' => json_decode($s['lyrics'], true)];
+    return ['id' => (int)$s['id'], 'title' => $s['title'], 'bpm' => (int)$s['bpm'], 'genre' => $s['genre'], 'lyrics' => json_decode($s['lyrics'], true),
+        'seed' => (int)$s['id'] * 7919 + (int)$s['bpm'], 'learned' => (bool)$s['learned']];
 }
 
 /* ---------------------------------------------------------------- band */
@@ -488,14 +607,22 @@ function act_rest(array $r): array
 
 /* ---------------------------------------------------------------- gigs */
 
-function act_gig_start(array $r, string $venue, array $songIds): array
+/** $modes[i] = 'live' (you play it) or 'auto' (autopilot, song must be learned). */
+function act_gig_start(array $r, string $venue, array $songIds, array $modes): array
 {
     $v = VENUES[$venue] ?? fail('Unknown venue.');
     if ($r['fame'] < $v['fame']) fail("{$v['name']} needs " . number_format($v['fame']) . ' fame.');
     need_energy($r, GIG_ENERGY);
     $songs = load_songs($r, $songIds, $v['songs'][0], $v['songs'][1]);
-    return ['token' => start_run('gig', ['venue' => $venue, 'songs' => array_column($songs, 'id')], count($songs)),
-        'charts' => array_map('chart_of', $songs), 'venue' => $v + ['id' => $venue]];
+    $m = [];
+    foreach ($songs as $i => $s) {
+        $mode = ($modes[$i] ?? 'live') === 'auto' ? 'auto' : 'live';
+        if ($mode === 'auto' && !$s['learned']) fail("\"{$s['title']}\" isn't learned yet, so it has to be played live.");
+        $m[] = $mode;
+    }
+    $liveCount = count(array_filter($m, fn($x) => $x === 'live'));
+    $token = start_run('gig', ['venue' => $venue, 'songs' => array_column($songs, 'id'), 'modes' => $m], $liveCount);
+    return ['token' => $token, 'charts' => array_map('chart_of', $songs), 'modes' => $m, 'venue' => $v + ['id' => $venue]];
 }
 
 function act_gig_finish(array $r, string $token, array $results, array $moves): array
@@ -508,10 +635,18 @@ function act_gig_finish(array $r, string $token, array $results, array $moves): 
     $songs = load_songs($r, $p['songs'], 1, 6);
     $tier = fame_tier((int)$r['fame'])['index'];
 
-    // ---- performance score 0-100
-    $acc = 0; $wpm = 0; $combo = 0;
-    foreach ($songs as $i => $s) { $res = clean_result($results[$i] ?? []); $acc += $res['accuracy']; $wpm = max($wpm, $res['wpm']); $combo = max($combo, $res['combo']); }
+    // ---- performance score 0-100 (live songs use what you played, autopilot songs use your skills)
+    $modes = $p['modes'] ?? array_fill(0, count($songs), 'live');
+    $acc = 0; $wpm = 0; $combo = 0; $liveAcc = []; $learnedNow = [];
+    foreach ($songs as $i => $s) {
+        if ($modes[$i] === 'auto') { $acc += auto_accuracy($r, $s, (float)$band['chemistry']); continue; }
+        $res = clean_result($results[$i] ?? []);
+        $acc += $res['accuracy']; $liveAcc[] = $res['accuracy'];
+        $wpm = max($wpm, $res['wpm']); $combo = max($combo, $res['combo']);
+        if ($res['accuracy'] >= LEARN_ACCURACY && mark_learned((int)$s['id'])) $learnedNow[] = $s['title'];
+    }
     $acc /= count($songs);
+    $liveShare = count($liveAcc) / count($songs);
     $quality = array_sum(array_column($songs, 'quality')) / count($songs);
     $tight = array_sum(array_column($songs, 'tightness')) / count($songs);
     $bandSkill = $mates ? array_sum(array_map(fn($m) => $m['skill'] * PERSONALITIES[$m['personality']]['perf'], $mates)) / count($mates) : 0;
@@ -519,7 +654,8 @@ function act_gig_finish(array $r, string $token, array $results, array $moves): 
     $show = ($r['stagecraft'] + $r['charisma']) / 2;
     $main = $r['instrument'] === 'vocals' ? $r['vocals'] : $r['musicianship'];
     $perf = 0.34 * $acc + 0.14 * $quality + 0.14 * $tight + 0.12 * $show + 0.08 * $main
-          + 0.10 * $bandSkill * $fullness + 0.08 * $band['chemistry'] + ($r['mood'] - 50) / 10;
+          + 0.10 * $bandSkill * $fullness + 0.08 * $band['chemistry'] + ($r['mood'] - 50) / 10
+          + 4 * $liveShare;   // crowds feel it when you really play
 
     // ---- stage moves
     $moveLog = []; $moveCost = 0;
@@ -558,6 +694,9 @@ function act_gig_finish(array $r, string $token, array $results, array $moves): 
     $r['stagecraft'] = min(100, $r['stagecraft'] + 0.5 + $perf / 150);
     $r['stamina'] = min(100, $r['stamina'] + 0.3);
     $r['best_wpm'] = max((int)$r['best_wpm'], $wpm);
+    $avgLive = $liveAcc ? array_sum($liveAcc) / count($liveAcc) : 0;
+    $xpMult = 1 + $liveShare * (live_mult($avgLive) - 1);
+    $xp = add_xp($r, (25 + $v['tier'] * 12 + $perf / 3) * $xpMult);
     foreach ($songs as $s) db()->prepare('UPDATE songs SET times_played = times_played + 1, tightness = ' . sql_min() . '(100, tightness + 2) WHERE id = ?')->execute([$s['id']]);
     db()->prepare('UPDATE bands SET chemistry = ' . sql_min() . '(100, chemistry + ?) WHERE id = ?')->execute([$perf >= 50 ? 2 : -1, $band['id']]);
     foreach ($mates as $m) {   // unhappy bandmates may quit after bad nights
@@ -577,6 +716,8 @@ function act_gig_finish(array $r, string $token, array $results, array $moves): 
     return [
         'result' => compact('perf', 'attendance', 'gross', 'wages', 'moveCost', 'net', 'fans', 'fame', 'stars', 'review') + [
             'moves' => $moveLog, 'accuracy' => round($acc, 1), 'wpm' => $wpm, 'combo' => $combo, 'tierUp' => $tierInfo['tierUp'], 'tier' => $tierInfo['tier'],
+            'xp' => $xp['xp'], 'xpMult' => round($xpMult, 2), 'levelUp' => $xp['levelUp'], 'level' => $xp['level'],
+            'liveSongs' => count($liveAcc), 'autoSongs' => count($songs) - count($liveAcc), 'learned' => $learnedNow,
         ],
         'message' => "Show over! $attendance people, " . str_repeat('★', $stars),
     ];
@@ -670,7 +811,8 @@ function public_state(int $uid): array
             'skills' => array_map(fn($k) => round((float)$r[$k], 1), array_combine(array_keys(SKILLS), array_keys(SKILLS))),
             'energy' => (int)round($r['energy']), 'mood' => (int)round($r['mood']), 'cash' => (int)$r['cash'],
             'fame' => (int)$r['fame'], 'fans' => (int)$r['fans'], 'tier' => $tier, 'gigsPlayed' => (int)$r['gigs_played'],
-            'bestWpm' => (int)$r['best_wpm'], 'restIn' => max(0, (int)$r['last_rest'] + REST_COOLDOWN - time()),
+            'bestWpm' => (int)$r['best_wpm'],
+            'level' => (int)$r['level'], 'xp' => (int)$r['xp'], 'xpNext' => xp_for_level((int)$r['level']), 'skillPoints' => (int)$r['skill_points'], 'restIn' => max(0, (int)$r['last_rest'] + REST_COOLDOWN - time()),
         ],
         'band' => [
             'name' => $band['name'], 'genre' => $band['genre'], 'chemistry' => round((float)$band['chemistry'], 1),
@@ -683,7 +825,7 @@ function public_state(int $uid): array
         'songs' => array_map(fn($s) => [
             'id' => (int)$s['id'], 'title' => $s['title'], 'genre' => $s['genre'], 'theme' => $s['theme'], 'bpm' => (int)$s['bpm'],
             'quality' => round((float)$s['quality']), 'tightness' => round((float)$s['tightness']), 'timesPlayed' => (int)$s['times_played'],
-            'released' => (bool)$s['released_at'], 'streams' => (int)$s['streams'], 'lyrics' => json_decode($s['lyrics'], true),
+            'released' => (bool)$s['released_at'], 'learned' => (bool)$s['learned'], 'streams' => (int)$s['streams'], 'lyrics' => json_decode($s['lyrics'], true),
         ], $songs->fetchAll()),
         'owned' => array_keys(owned_items((int)$r['id'])),
         'news' => $newsQ->fetchAll(),

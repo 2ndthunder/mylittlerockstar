@@ -66,6 +66,9 @@ function schema_statements(string $driver): array
             fans INT NOT NULL DEFAULT 0,
             gigs_played INT NOT NULL DEFAULT 0,
             best_wpm INT NOT NULL DEFAULT 0,
+            xp INT NOT NULL DEFAULT 0,
+            level INT NOT NULL DEFAULT 1,
+            skill_points INT NOT NULL DEFAULT 0,
             last_rest INT NOT NULL DEFAULT 0,
             last_tick INT NOT NULL,
             created_at INT NOT NULL,
@@ -107,6 +110,7 @@ function schema_statements(string $driver): array
             lyrics {TEXT} NOT NULL,
             quality DOUBLE NOT NULL,
             tightness DOUBLE NOT NULL DEFAULT 0,
+            learned INT NOT NULL DEFAULT 0,
             times_played INT NOT NULL DEFAULT 0,
             released_at INT,
             streams INT NOT NULL DEFAULT 0,
@@ -166,6 +170,25 @@ function schema_statements(string $driver): array
     }, $sql);
 }
 
+/** Columns added after the first release; existing databases get them automatically. */
+const ADDED_COLUMNS = [
+    ['rockstars', 'xp', 'INT NOT NULL DEFAULT 0'],
+    ['rockstars', 'level', 'INT NOT NULL DEFAULT 1'],
+    ['rockstars', 'skill_points', 'INT NOT NULL DEFAULT 0'],
+    ['songs', 'learned', 'INT NOT NULL DEFAULT 0'],
+];
+
+function column_exists(PDO $pdo, string $table, string $col): bool
+{
+    if (DB_DRIVER === 'mysql') {
+        $st = $pdo->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
+        $st->execute([$col]);
+        return (bool)$st->fetch();
+    }
+    foreach ($pdo->query("PRAGMA table_info($table)") as $c) if ($c['name'] === $col) return true;
+    return false;
+}
+
 function migrate(PDO $pdo): void
 {
     foreach (schema_statements(DB_DRIVER) as $stmt) {
@@ -176,6 +199,9 @@ function migrate(PDO $pdo): void
             continue;
         }
         $pdo->exec($stmt);
+    }
+    foreach (ADDED_COLUMNS as [$table, $col, $ddl]) {
+        if (!column_exists($pdo, $table, $col)) $pdo->exec("ALTER TABLE $table ADD COLUMN $col $ddl");
     }
 }
 

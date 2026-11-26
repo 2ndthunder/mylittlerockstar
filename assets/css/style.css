@@ -239,3 +239,34 @@ dialog.wide { width: min(900px, 96vw); } dialog::backdrop { background: #05030ac
   .preview-stage { max-width: 300px; margin: 0 auto 12px; } .crowd { bottom: 300px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* ---------- levels, learned tags, skill rows */
+.lvl { display: grid; grid-template-columns: auto 120px auto auto; align-items: center; gap: 8px; font-size: .85rem; }
+.lvl span { color: #c9a3ff; font-weight: 800; }
+.meter.purple > div { background: linear-gradient(90deg, #7b6bff, #c9a3ff); }
+.btn.gold { background: #3a2f10; border-color: var(--yellow); color: var(--yellow); }
+.tag.good { color: var(--good); border-color: var(--good); }
+.skill-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.skill-card .row { margin-top: 4px; }
+.set-song { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
+.set-song select { min-height: 38px; padding: 4px 8px; }
+.set-song label { display: flex; gap: 10px; align-items: center; font-weight: 400; }
+
+/* ---------- instrument note highway */
+.highway { position: relative; height: 300px; display: grid; grid-template-columns: repeat(var(--lanes), 1fr); gap: 4px; margin: 12px 0 0;
+  background: linear-gradient(180deg, #07050d00, #07050d 25%); border: 2px solid var(--line); border-bottom: 0; border-radius: 16px 16px 0 0; overflow: hidden; perspective: 600px; }
+.hw-lane { background: linear-gradient(180deg, transparent, #ffffff0d); border-left: 1px solid #ffffff12; }
+.hw-hit { position: absolute; left: 0; right: 0; bottom: 30px; height: 6px; background: var(--yellow); box-shadow: 0 0 20px var(--yellow); }
+.hw-notes { position: absolute; inset: 0; }
+.hw-note { position: absolute; top: 0; width: calc(100% / var(--lanes) - 8px); margin-left: 4px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+  font-weight: 900; font-size: 1.1rem; color: #120d1d; border: 3px solid #120d1d; box-shadow: 0 0 12px currentColor; will-change: transform; }
+.hw-note.hit { transform-origin: center; animation: notepop .25s forwards; } .hw-note.miss { opacity: .25; filter: grayscale(1); }
+@keyframes notepop { to { opacity: 0; scale: 1.6; } }
+.hw-keys { display: grid; grid-template-columns: repeat(var(--lanes), 1fr); gap: 4px; padding: 6px; background: #07050d; border: 2px solid var(--line); border-top: 0; border-radius: 0 0 16px 16px; margin-bottom: 8px; }
+.hw-key { display: grid; justify-items: center; padding: 8px 4px; border-radius: 10px; background: #1b1430; border: 2px solid currentColor; }
+.hw-key b { font-size: 1.5rem; color: #fff; } .hw-key small { font-size: .7rem; color: var(--muted); min-height: 1em; }
+.hw-key.press { animation: keypress .15s; } @keyframes keypress { 50% { background: currentColor; transform: translateY(2px); } }
+.l0 { color: #ff5c6c; } .l1 { color: #ff9d3b; } .l2 { color: #ffd23f; } .l3 { color: #6ff0a0; } .l4 { color: #29e0e0; } .l5 { color: #4f8bff; } .l6 { color: #b98cff; } .l7 { color: #ff6fd1; }
+.hw-note.l0 { background: #ff5c6c; } .hw-note.l1 { background: #ff9d3b; } .hw-note.l2 { background: #ffd23f; } .hw-note.l3 { background: #6ff0a0; }
+.hw-note.l4 { background: #29e0e0; } .hw-note.l5 { background: #4f8bff; } .hw-note.l6 { background: #b98cff; } .hw-note.l7 { background: #ff6fd1; }
+.autoplay .auto-lyric { font-size: 1.6rem; font-weight: 800; text-align: center; min-height: 2.4em; margin: 18px 0; color: var(--yellow); }

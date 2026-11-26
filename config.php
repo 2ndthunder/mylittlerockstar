@@ -30,5 +30,15 @@ const RECORD_COST       = 120;    // studio cost to release a single
 
 const RECRUITS_PER_DAY  = 4;
 
+// ---- Live play vs autopilot ----------------------------------------------------
+// Typing a song once teaches it (accuracy >= LEARN_ACCURACY). Learned songs can be played on autopilot.
+// Playing live (typing) multiplies XP and boosts the show.
+const LEARN_ACCURACY   = 50;
+const LEARN_ENERGY     = 8;
+const LIVE_XP_BASE     = 1.25;   // live XP multiplier at 0% accuracy ...
+const LIVE_XP_PER_ACC  = 0.0075; // ... + this per accuracy point (100% accuracy = x2.0)
+const AUTO_SKILL_RATE  = 0.6;    // auto practice gives 60% of a live drill's skill gain
+const SKILL_POINTS_PER_LEVEL = 3;
+
 // Minimum seconds a minigame must take per song before results are accepted (anti-cheat).
 const MIN_SECONDS_PER_SONG = 12;

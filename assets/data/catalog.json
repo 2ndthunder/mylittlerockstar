@@ -141,6 +141,14 @@
   ],
   "eyes": [
    {
+    "id": "classic",
+    "name": "Classic"
+   },
+   {
+    "id": "classiclid",
+    "name": "Classic, half-lid"
+   },
+   {
     "id": "round",
     "name": "Round"
    },
@@ -1749,16 +1757,16 @@
  },
  "stances": [
   {
+   "id": "relaxed",
+   "name": "Standing"
+  },
+  {
    "id": "wide",
    "name": "Rock stance"
   },
   {
    "id": "power",
    "name": "Power stance"
-  },
-  {
-   "id": "relaxed",
-   "name": "Relaxed"
   }
  ],
  "fits": [
@@ -1907,7 +1915,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "long",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "button",
@@ -1952,7 +1960,7 @@
    "look": {
     "build": "athletic",
     "skin": "#f6cfb2",
-    "stance": "power",
+    "stance": "relaxed",
     "face": {
      "shape": "round",
      "eyes": "toon",
@@ -2007,7 +2015,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#7a8a99",
      "brows": "thin",
      "nose": "small",
@@ -2064,10 +2072,10 @@
    "look": {
     "build": "curvy",
     "skin": "#c4834f",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "heart",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#7b3fa0",
      "brows": "arched",
      "nose": "button",
@@ -2127,10 +2135,10 @@
    "look": {
     "build": "broad",
     "skin": "#eab48f",
-    "stance": "power",
+    "stance": "wide",
     "face": {
      "shape": "square",
-     "eyes": "toonlid",
+     "eyes": "toon",
      "eyeColor": "#3b2414",
      "brows": "slab",
      "nose": "straight",
@@ -2186,7 +2194,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "square",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#2f6f3e",
      "brows": "thick",
      "nose": "straight",
@@ -2228,10 +2236,10 @@
    "look": {
     "build": "average",
     "skin": "#6f4024",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "round",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "wide",
@@ -2279,7 +2287,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#6b4423",
      "brows": "soft",
      "nose": "button",
@@ -2324,7 +2332,7 @@
    "look": {
     "build": "slim",
     "skin": "#f6cfb2",
-    "stance": "power",
+    "stance": "relaxed",
     "face": {
      "shape": "pointed",
      "eyes": "toon",
@@ -2387,10 +2395,10 @@
    "look": {
     "build": "slim",
     "skin": "#fde3d0",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#3b74b8",
      "brows": "thin",
      "nose": "small",
@@ -2451,7 +2459,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "round",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#6b4423",
      "brows": "soft",
      "nose": "button",
@@ -2504,7 +2512,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "straight",
@@ -2557,10 +2565,10 @@
    "look": {
     "build": "slim",
     "skin": "#c4834f",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#7b3fa0",
      "brows": "thin",
      "nose": "small",
@@ -2622,7 +2630,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "long",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "wide",
@@ -2673,10 +2681,10 @@
    "look": {
     "build": "heavy",
     "skin": "#eab48f",
-    "stance": "power",
+    "stance": "relaxed",
     "face": {
      "shape": "square",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "slab",
      "nose": "straight",
@@ -2730,7 +2738,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "heart",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#7b3fa0",
      "brows": "arched",
      "nose": "small",
@@ -2790,7 +2798,7 @@
     "height": 0.96,
     "face": {
      "shape": "round",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b74b8",
      "brows": "thick",
      "nose": "button",
@@ -2836,10 +2844,10 @@
    "look": {
     "build": "average",
     "skin": "#6f4024",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "round",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "wide",
@@ -2891,10 +2899,10 @@
    "look": {
     "build": "slim",
     "skin": "#f6cfb2",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "pointed",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#2f6f3e",
      "brows": "angry",
      "nose": "straight",
@@ -2957,7 +2965,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b74b8",
      "brows": "soft",
      "nose": "button",
@@ -3001,7 +3009,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "square",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#6b4423",
      "brows": "thick",
      "nose": "straight",
@@ -3054,10 +3062,10 @@
    "look": {
     "build": "curvy",
     "skin": "#8d5530",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "heart",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#3b2414",
      "brows": "arched",
      "nose": "button",
@@ -3112,7 +3120,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#7b3fa0",
      "brows": "arched",
      "nose": "small",
@@ -3168,7 +3176,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "oval",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "button",
@@ -3228,7 +3236,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "square",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#3b2414",
      "brows": "thick",
      "nose": "straight",
@@ -3288,7 +3296,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "long",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "thick",
      "nose": "straight",
@@ -3336,10 +3344,10 @@
    "look": {
     "build": "slim",
     "skin": "#fde3d0",
-    "stance": "wide",
+    "stance": "relaxed",
     "face": {
      "shape": "heart",
-     "eyes": "toonlid",
+     "eyes": "classiclid",
      "eyeColor": "#3b74b8",
      "brows": "arched",
      "nose": "small",
@@ -3405,7 +3413,7 @@
     "stance": "relaxed",
     "face": {
      "shape": "square",
-     "eyes": "toon",
+     "eyes": "classic",
      "eyeColor": "#3b2414",
      "brows": "soft",
      "nose": "wide",
@@ -3451,7 +3459,7 @@
    "look": {
     "build": "athletic",
     "skin": "#c9b7e8",
-    "stance": "power",
+    "stance": "relaxed",
     "face": {
      "shape": "pointed",
      "eyes": "toon",

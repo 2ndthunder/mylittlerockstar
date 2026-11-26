@@ -205,7 +205,7 @@ test('appearance sliders, stance and fit are validated and clamped', function ()
     $look['stance'] = 'moonwalk'; $look['outfit']['bottom']['fit'] = 'baggy'; $look['outfit']['shoes']['fit'] = 'baggy';
     $clean = clean_appearance($look, [], 0, true);
     eq($clean['body']['muscle'], 50); eq($clean['face']['jaw'], -50); eq($clean['face']['eyeSize'], 0);
-    eq($clean['stance'], 'wide'); eq($clean['outfit']['bottom']['fit'], 'baggy');
+    eq($clean['stance'], 'relaxed'); eq($clean['outfit']['bottom']['fit'], 'baggy');
     ok(!isset($clean['outfit']['shoes']['fit']), 'fit only on clothing');
     eq(count($clean['body']), count(slider_ids('body')));
 });

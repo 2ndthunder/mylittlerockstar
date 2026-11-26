@@ -44,7 +44,7 @@ function clean_appearance(array $a, array $owned, int $fame, bool $creating = fa
     $out['build']  = $pickId($L['builds'], $a['build'] ?? '', 'average');
     $out['height'] = round(max(0.88, min(1.12, (float)($a['height'] ?? 1))), 2);
     $out['skin']   = hexcolor($a['skin'] ?? '', $L['palettes']['skin'][2]);
-    $out['stance'] = $pickId($L['stances'], $a['stance'] ?? '', 'wide');
+    $out['stance'] = $pickId($L['stances'], $a['stance'] ?? '', 'relaxed');
     $out['body'] = [];
     foreach (slider_ids('body') as $k) $out['body'][$k] = slider($a['body'][$k] ?? 0);
 
@@ -136,9 +136,9 @@ function archetype_appearance(string $id, ?int $seed = null): array
     $look = $ar['look'];
     $none = ['id' => 'none'];
     $base = [
-        'build' => 'average', 'height' => 1, 'skin' => '#eab48f', 'stance' => 'wide',
+        'build' => 'average', 'height' => 1, 'skin' => '#eab48f', 'stance' => 'relaxed',
         'body' => array_fill_keys(slider_ids('body'), 0),
-        'face' => ['shape' => 'oval', 'eyes' => 'toon', 'eyeColor' => '#3b2414', 'brows' => 'soft', 'nose' => 'button', 'mouth' => 'smile', 'marks' => 'none'] + array_fill_keys(slider_ids('face'), 0),
+        'face' => ['shape' => 'oval', 'eyes' => 'classic', 'eyeColor' => '#3b2414', 'brows' => 'soft', 'nose' => 'button', 'mouth' => 'smile', 'marks' => 'none'] + array_fill_keys(slider_ids('face'), 0),
         'hair' => ['style' => 'messy', 'color' => '#16120f', 'color2' => '', 'facial' => 'none', 'facialColor' => ''],
         'makeup' => ['liner' => false, 'shadow' => '', 'lips' => '', 'paint' => 'none', 'paintColor' => '#121216'],
         'outfit' => ['top' => ['id' => 'tee', 'color' => '#121216'], 'outer' => $none, 'bottom' => ['id' => 'skinny', 'color' => '#1d2a4d'], 'legwear' => $none,
@@ -216,7 +216,7 @@ function random_appearance(string $role, int $seed, bool $premium = false): arra
     if (mt_rand(1, 3) === 1) $top['print'] = $pick(['ROCK', 'RIOT', 'NOISE', 'LOUD', 'FUZZ', 'AMPED']);
     $look = [
         'build' => $pick($L['builds'])['id'], 'height' => round(0.94 + mt_rand(0, 12) / 100, 2), 'skin' => $pick(array_slice($P['skin'], 0, 10)),
-        'stance' => $pick(['wide', 'wide', 'power', 'relaxed']),
+        'stance' => $pick(['relaxed', 'relaxed', 'relaxed', 'wide']),
         'body' => array_combine(slider_ids('body'), array_map(fn() => mt_rand(-20, 20), slider_ids('body'))),
         'face' => ['shape' => $pick($L['face']['shape'])['id'], 'eyes' => $pick($L['face']['eyes'])['id'], 'eyeColor' => $pick($P['eyes']),
             'brows' => $pick(array_slice($L['face']['brows'], 0, 5))['id'], 'nose' => $pick($L['face']['nose'])['id'],

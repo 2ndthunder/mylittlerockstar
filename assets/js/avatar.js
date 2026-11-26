@@ -167,7 +167,21 @@ const Avatar = (() => {
       boombox:    { A: [sA, [CX - b.sw - 8, 156], [CX - b.sw - 4, 198]], B: [sB, [CX + b.sw + 26, 104], [CX + b.sw + 26, 70]] },
       marching:   { A: [sA, [CX - b.sw - 12, 158], [CX - 26, 190]], B: [sB, [CX + b.sw + 12, 158], [CX + 26, 190]] },
     };
-    return { type, key, ...(K[key] || P[type] || P.none) };
+    const raw = K[key] || P[type] || P.none;
+    return { type, key, A: ik(raw.A), B: ik(raw.B) };
+  }
+  /** Two-bone IK. Keeps upper arm and forearm the same length in every pose; the hint picks which way the elbow bends. */
+  const UPPER = 50, FORE = 47;
+  function ik([S, E0, H]) {
+    let dx = H[0] - S[0], dy = H[1] - S[1], d = Math.hypot(dx, dy);
+    const max = UPPER + FORE - 1.5;
+    if (d > max) { H = [S[0] + dx / d * max, S[1] + dy / d * max]; dx = H[0] - S[0]; dy = H[1] - S[1]; d = max; }
+    d = Math.max(d, Math.abs(UPPER - FORE) + 1);
+    const a = (UPPER * UPPER - FORE * FORE + d * d) / (2 * d), h = Math.sqrt(Math.max(0, UPPER * UPPER - a * a));
+    const px = S[0] + dx / d * a, py = S[1] + dy / d * a, nx = -dy / d, ny = dx / d;
+    const e1 = [px + nx * h, py + ny * h], e2 = [px - nx * h, py - ny * h];
+    const E = Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2;
+    return [S, E, H];
   }
   /** Which drawing + pose a type/model pair uses. */
   function instKey(type, model) {
@@ -248,7 +262,7 @@ const Avatar = (() => {
   }
   /** Muscle shapes for bare arms and legs (bicep + forearm, thigh + calf), scaled by the muscle slider. */
   const armShape = b => ({ ws: [b.arm * 1.3, b.arm * 0.84, b.arm * 0.68], bulge: [b.arm * 0.5 * b.muscle + 1, b.arm * 0.36 * b.muscle + 0.8], peak: [0.42, 0.24] });
-  const legShape = b => ({ ws: [b.leg * 1.4, b.leg * 0.86, b.leg * 0.64], bulge: [b.leg * 0.3 * b.muscle + 1.5, b.leg * 0.34 * b.muscle + 1.2], peak: [0.35, 0.3] });
+  const legShape = b => ({ ws: [b.leg * 1.5, b.leg * 0.8, b.leg * 0.58], bulge: [b.leg * 0.26 * b.muscle + 2.5, b.leg * 0.4 * b.muscle + 2.8], peak: [0.3, 0.27] });
 
   /** Cel shading: a hard shadow crescent on the lower-right of any shape (works with patterns too). */
   function cel(d, { dx = -4, dy = -3, op = 0.22 } = {}) {
@@ -269,14 +283,29 @@ const Avatar = (() => {
   const ang = (p, q) => Math.atan2(q[1] - p[1], q[0] - p[0]) * 180 / Math.PI;
 
   /* ---------------------------------------------------------------- body */
-  function torsoPath(b) {
-    const { sw, ww, hw, bust } = b, cp = (b.chestPad || 0) + b.muscle * 2.5, trap = 8 + b.muscle * 5;
-    return `M${CX - sw} ${Y.shoulder}
-      C${CX - sw - 3 - cp} ${Y.chest - 10 + bust} ${CX - sw + 2 - bust - cp} ${Y.chest + 6} ${CX - ww} ${Y.waist}
+  /** Radius of the rounded shoulder cap that hides where the arm joins the body. */
+  const capR = b => b.arm * 0.56 + b.muscle * 1.8;
+  /** Cap points for one side (sg = -1 left, 1 right): top of shoulder T, two control points, armpit-side end A. */
+  function capPts(b, sg, e = 0) {
+    const r = capR(b) + e, x = CX + sg * b.sw;
+    return { T: [x - sg * 5, Y.shoulder - r * 0.5 - e * 0.4], c1: [x + sg * r * 0.95, Y.shoulder - r * 0.5], c2: [x + sg * r * 1.05, Y.shoulder + r * 0.9], A: [x + sg * r * 0.15, Y.shoulder + r * 1.7] };
+  }
+  /** Path segment from the top of the shoulder round the cap (used by jackets). */
+  function shoulderCap(b, sg, e = 0) {
+    const p = capPts(b, sg, e);
+    return `L${fx(p.T)} C${fx(p.c1)} ${fx(p.c2)} ${fx(p.A)}`;
+  }
+  function torsoPath(b, e = 0) {
+    const { sw, ww, hw, bust } = b, cp = (b.chestPad || 0) + b.muscle * 2.5, trap = 7 + b.muscle * 4, n = (b.neck || 9) + 1;
+    const L = capPts(b, -1, e), R = capPts(b, 1, e);
+    return `M${CX - n} ${Y.shoulder - trap - 4}
+      Q${CX - sw * 0.6} ${Y.shoulder - trap} ${fx(L.T)} C${fx(L.c1)} ${fx(L.c2)} ${fx(L.A)}
+      C${CX - sw - 1 - cp} ${Y.chest + bust} ${CX - sw + 4 - bust - cp} ${Y.chest + 10} ${CX - ww} ${Y.waist}
       Q${CX - hw - 2} ${Y.hip - 8} ${CX - hw} ${Y.hip} L${CX - hw + 3} ${Y.crotch + 2} L${CX + hw - 3} ${Y.crotch + 2} L${CX + hw} ${Y.hip}
       Q${CX + hw + 2} ${Y.hip - 8} ${CX + ww} ${Y.waist}
-      C${CX + sw - 2 + bust + cp} ${Y.chest + 6} ${CX + sw + 3 + cp} ${Y.chest - 10 + bust} ${CX + sw} ${Y.shoulder}
-      Q${CX + sw * 0.55} ${Y.shoulder - trap} ${CX} ${Y.shoulder - trap - 1} Q${CX - sw * 0.55} ${Y.shoulder - trap} ${CX - sw} ${Y.shoulder} Z`;
+      C${CX + sw - 4 + bust + cp} ${Y.chest + 10} ${CX + sw + 1 + cp} ${Y.chest + bust} ${fx(R.A)}
+      C${fx(R.c2)} ${fx(R.c1)} ${fx(R.T)} Q${CX + sw * 0.6} ${Y.shoulder - trap} ${CX + n} ${Y.shoulder - trap - 4}
+      Q${CX} ${Y.shoulder + 3} ${CX - n} ${Y.shoulder - trap - 4} Z`;
   }
   /** Hip → knee → ankle for each leg. Stances: relaxed (straight), wide (rock stance), power (deep, knees out). */
   function legPoints(b, stance = 'wide') {
@@ -294,6 +323,10 @@ const Avatar = (() => {
   function drawLegs(c) {
     const { b } = c, legs = c.legs, skin = c.grad(c.skin);
     let s = limb(legs.L, b.leg, skin, true, legShape(b)) + limb(legs.R, b.leg, skin, true, legShape(b));
+    // knee caps + shin line so bare legs read as legs, not tubes
+    s += [legs.L, legs.R].map((L, i) => { const k = L[1], sg = i ? 1 : -1;
+      return `<path d="M${k[0] - b.leg * 0.28} ${k[1] - 3} q${b.leg * 0.28} 5 ${b.leg * 0.56} 0" stroke="${shade(c.skin, -0.3)}" stroke-width="1.5" fill="none" opacity=".6" stroke-linecap="round"/>
+        <path d="M${k[0] + sg * b.leg * 0.18} ${k[1] + 10} q${sg * 1.5} 16 ${-sg * 0.5} 30" stroke="${shade(c.skin, -0.3)}" stroke-width="1.2" fill="none" opacity=".35" stroke-linecap="round"/>`; }).join('');
     s += tattoosOn(c, ['legL', 'legR']);
     const lw = c.a.outfit?.legwear?.id;
     if (lw && lw !== 'none') {
@@ -468,7 +501,8 @@ const Avatar = (() => {
       }
       if (id === 'barefoot') { s += shape(`M${x - 9} ${F - 8} Q${x + 2} ${F - 12} ${x + 15} ${F - 4} Q${x + 15} ${F} ${x + 10} ${F} L${x - 9} ${F} Z`, c.skin, 2.2); continue; }
       const sole = id === 'platforms' ? 14 : id === 'moonboots' ? 10 : id === 'creepers' ? 8 : id === 'boots' ? 6 : 5;
-      const shaft = { boots: 40, cowboy: 34, platforms: 46, hightops: 20, moonboots: 38 }[id] || 0;
+      const bt = c.a.outfit?.bottom, hidden = ['flares', 'gown', 'longskirt'].includes(bt?.id) || (fitOf(bt) === 'baggy' && !['harem', 'shorts', 'skirt', 'kilt', 'tutu'].includes(bt?.id));
+      const shaft = hidden ? Math.min(8, { boots: 40, cowboy: 34, platforms: 46, hightops: 20, moonboots: 38 }[id] || 0) : ({ boots: 40, cowboy: 34, platforms: 46, hightops: 20, moonboots: 38 }[id] || 0);
       const top = F - sole, wd = id === 'moonboots' ? 15 : 13;
       let g = '';
       if (shaft) g += shape(`M${x - wd + 1} ${top - shaft} L${x + wd - 1} ${top - shaft} L${x + wd + 1} ${top - 6} L${x - wd - 1} ${top - 6} Z`, col, 2.4);
@@ -504,6 +538,9 @@ const Avatar = (() => {
   function drawTorso(c) {
     const b = c.b, k = shade(c.skin, -0.32);
     let s = shape(torsoPath(b), c.skin);
+    const r = capR(b);
+    s += [-1, 1].map(sg => `<path d="M${CX + sg * (b.sw + r * 0.05)} ${Y.shoulder + r * 1.75} q${-sg * 3} 3 ${-sg * 3} 8" stroke="${k}" stroke-width="1.6" fill="none" opacity=".55" stroke-linecap="round"/>
+      <path d="M${CX + sg * 4} ${Y.shoulder + 1} Q${CX + sg * b.sw * 0.45} ${Y.shoulder - 4} ${CX + sg * (b.sw - 6)} ${Y.shoulder - 2}" stroke="${k}" stroke-width="1.4" fill="none" opacity=".35" stroke-linecap="round"/>`).join('');
     if (b.muscle > 0.5 && b.bust < 2) {        // pecs + abs, only visible when the top shows skin
       const o = clamp((b.muscle - 0.5) * 1.2, 0.25, 0.8);
       s += `<path d="M${CX - b.sw + 9} ${Y.chest - 4} Q${CX - 12} ${Y.chest + 10} ${CX - 2} ${Y.chest + 2} M${CX + b.sw - 9} ${Y.chest - 4} Q${CX + 12} ${Y.chest + 10} ${CX + 2} ${Y.chest + 2}
@@ -522,7 +559,9 @@ const Avatar = (() => {
     c.defs.push(`<clipPath id="${clip}"><path d="${torsoPath(b)}"/></clipPath>`);
     const bottomY = it.id === 'crop' ? Y.chest + 14 : it.id === 'corset' ? Y.hip - 4 : Y.hip + 4 + (fit === 'baggy' ? 8 : 0);
     const topY = it.id === 'tank' || it.id === 'mesh' || it.id === 'corset' ? Y.shoulder + 4 : Y.shoulder - 12;
-    let s = `<g clip-path="url(#${clip})">`;
+    const topDef = Avatar.catalog?.outfit?.top?.find(t => t.id === it.id), bare = topDef?.sleeve === 'none';
+    let s = `<g clip-path="url(#${clip})">` + (bare ? `<g clip-path="url(#${c.id}tb)">` : '');
+    if (bare) c.defs.push(`<clipPath id="${c.id}tb"><rect x="${CX - b.sw + 3}" y="0" width="${(b.sw - 3) * 2}" height="400"/></clipPath>`);
     if (it.id === 'fishnet' || it.id === 'mesh') {
       s += `<rect x="${CX - 60}" y="${topY}" width="120" height="${bottomY - topY}" fill="none" stroke="${col}" stroke-width="${b.sw * 2.2}" stroke-dasharray="1.4 2.8" opacity=".9"/>`;
       // dashed fill trick: draw hatch lines
@@ -573,10 +612,11 @@ const Avatar = (() => {
       if (it.id === 'crop') s += `<line x1="${CX - 40}" y1="${bottomY}" x2="${CX + 40}" y2="${bottomY}" stroke="${INK}" stroke-width="2"/>`;
       if (fit === 'baggy') s += `<path d="M${CX - b.ww + 4} ${Y.waist + 6} q8 10 20 8 M${CX + b.ww - 4} ${Y.waist + 4} q-6 12 -18 10" stroke="${INK}" stroke-width="1.4" fill="none" opacity=".45"/>`;
     }
-    s += `</g>`;
+    s += bare ? `</g></g>` : `</g>`;
+    if (bare && !special) s += [-1, 1].map(sg => `<path d="M${CX + sg * (b.sw - 3)} ${topY} Q${CX + sg * (b.sw - 6)} ${Y.shoulder + 22} ${CX + sg * (b.sw - 3)} ${Y.chest + 4}" stroke="${INK}" stroke-width="2.4" fill="none"/>`).join('');
     if (!special) {                             // bold garment silhouette, cut at the hem
       const hc = `${c.id}th`;
-      c.defs.push(`<clipPath id="${hc}"><rect x="${CX - 90}" y="${topY - 4}" width="180" height="${bottomY - topY + 4}"/></clipPath>`);
+      c.defs.push(`<clipPath id="${hc}"><rect x="${bare ? CX - b.sw + 3 : CX - 90}" y="${topY - 4}" width="${bare ? (b.sw - 3) * 2 : 180}" height="${bottomY - topY + 4}"/></clipPath>`);
       s += `<path d="${torsoPath(b)}" fill="none" stroke="${INK}" stroke-width="3.2" stroke-linejoin="round" clip-path="url(#${hc})"/>
         <path d="M${CX - b.hw - 3} ${bottomY} Q${CX} ${bottomY + 3} ${CX + b.hw + 3} ${bottomY}" stroke="${INK}" stroke-width="2.6" fill="none"/>`;
     }
@@ -591,7 +631,9 @@ const Avatar = (() => {
     const lapel = { denimvest: 13, studvest: 13, waistcoat: 12, overshirt: 12, glam: 11, track: 2.5, tech: 2.5, uniform: 2.5, cardigan: 9, fringe: 9 }[it.id] ?? 9;
     const side = sign => {
       const x0 = CX + sign * lapel, xs = CX + sign * (b.sw + 2), xh = CX + sign * (Math.max(b.hw, b.ww) + (long ? 10 : 4));
-      const d = `M${x0} ${Y.shoulder - 6} L${xs} ${Y.shoulder - 1} Q${xs + sign * 2} ${Y.chest} ${CX + sign * (b.ww + 3)} ${Y.waist} L${xh} ${bottom} L${CX + sign * (lapel - 2)} ${bottom} L${CX + sign * 3} ${Y.chest + 10} Z`;
+      const sleeved = Avatar.catalog?.outfit?.outer?.find(o => o.id === it.id)?.sleeve === 'long';
+      const shoulder = sleeved ? `${shoulderCap(b, sign, 2.5)} Q${CX + sign * (b.sw + 2)} ${Y.chest + 6}` : `L${xs} ${Y.shoulder - 1} Q${xs + sign * 2} ${Y.chest}`;
+      const d = `M${x0} ${Y.shoulder - 6} ${shoulder} ${CX + sign * (b.ww + 3)} ${Y.waist} L${xh} ${bottom} L${CX + sign * (lapel - 2)} ${bottom} L${CX + sign * 3} ${Y.chest + 10} Z`;
       return shape(d, f, 3, { dx: -4, dy: -3, op: sign > 0 ? 0.26 : 0.16 });
     };
     let s = side(-1) + side(1);
@@ -743,11 +785,19 @@ const Avatar = (() => {
       g += `<ellipse cx="${w * 0.45}" cy="0" rx="${w * 0.62}" ry="${w * 0.62}" fill="${palm}" ${o}/>`;
       g += finger(w * 0.3, -flip * w * 0.5, w * 0.7, w * 0.36, -flip * 40);
     } else {
-      if (style === 'horns') g += finger(w * 0.9, -w * 0.38, w * 1.25, w * 0.34, -6) + finger(w * 0.9, w * 0.4, w * 1.05, w * 0.32, 8);
-      g += `<rect x="${-w * 0.15}" y="${-w * 0.66}" width="${w * 1.42}" height="${w * 1.32}" rx="${w * 0.46}" fill="${palm}" ${o}/>`;
-      if (glove && !full) g += [-0.36, 0, 0.36].map(t => `<ellipse cx="${w * 1.2}" cy="${t * w * 1.1}" rx="${w * 0.22}" ry="${w * 0.19}" fill="${skin}" ${o}/>`).join('');   // fingertips poking out
-      g += [-0.33, 0, 0.33].map(t => `<path d="M${w * 1.05} ${t * w * 1.2} q${w * 0.18} ${w * 0.08} 0 ${w * 0.3}" stroke="${shade(skin, -0.35)}" stroke-width="1.3" fill="none"/>`).join('');
-      g += finger(w * 0.15, -flip * w * 0.58, w * 0.85, w * 0.36, flip * 8);   // thumb
+      // fist: back of the hand flows out of the wrist (outlined on its sides only), four curled fingers, thumb wrapped over
+      const back = `M${-w * 0.25} ${-w * 0.35} C${w * 0.25} ${-w * 0.44} ${w * 0.55} ${-w * 0.64} ${w * 0.9} ${-w * 0.6} L${w * 0.9} ${w * 0.6} C${w * 0.55} ${w * 0.64} ${w * 0.25} ${w * 0.44} ${-w * 0.25} ${w * 0.35}`;
+      g += `<path d="${back} Z" fill="${palm}"/><path d="${back}" fill="none" ${o}/>`;
+      const ys = [-0.45, -0.15, 0.15, 0.45].map(t => t * flip);            // index (thumb side) → pinky
+      ys.forEach((t, i) => {
+        const up = style === 'horns' && (i === 0 || i === 3);
+        if (up) { g += finger(w * 0.82, t * w, w * (i ? 1.0 : 1.2), w * 0.31, t * 12); return; }
+        const fx0 = w * 0.7, len = w * (0.55 - Math.abs(t) * 0.12), hgt = w * 0.31, y0 = t * w - hgt / 2;
+        g += `<rect x="${fx0}" y="${y0}" width="${len}" height="${hgt}" rx="${hgt / 2}" fill="${full ? glove : skin}" ${o}/>`;
+        if (glove && !full) g += `<rect x="${fx0}" y="${y0}" width="${len * 0.5}" height="${hgt}" rx="${hgt * 0.3}" fill="${glove}" ${o}/>`;
+      });
+      g += `<path d="M${w * 0.95} ${-w * 0.58} v${w * 1.16}" stroke="${shade(palm, -0.25)}" stroke-width="1" opacity=".5"/>`;
+      g += finger(w * 0.12, -flip * w * 0.42, w * 0.82, w * 0.34, flip * 26);   // thumb across the front
     }
     g += `<path d="M${-w * 0.1} ${w * 0.4} Q${w * 0.6} ${w * 0.75} ${w * 1.1} ${w * 0.45}" stroke="${INK}" stroke-width="0" fill="${INK}" opacity=".18"/>`;
     const tat = c.a.tattoos?.find(t => t.slot === 'hands');
@@ -819,8 +869,9 @@ const Avatar = (() => {
   /* ---------------------------------------------------------------- neck & accessories */
   function drawNeck(c) {
     const n = c.b.neck;
-    const d = `M${CX - n} ${Y.neckTop} L${CX - n - 1.5} ${Y.shoulder + 2} L${CX + n + 1.5} ${Y.shoulder + 2} L${CX + n} ${Y.neckTop} Z`;
-    return shape(d, shade(c.skin, -0.06), 2.6) + `<path d="M${CX - n} ${Y.neckTop + 2} Q${CX} ${Y.neckTop + 14} ${CX + n} ${Y.neckTop + 2} L${CX + n} ${Y.neckTop} L${CX - n} ${Y.neckTop} Z" fill="${INK}" opacity=".25"/>`
+    const top = Y.neckTop - 6, d = `M${CX - n} ${top} Q${CX - n + 1} ${Y.shoulder - 10} ${CX - n - 4} ${Y.shoulder - 2} L${CX + n + 4} ${Y.shoulder - 2} Q${CX + n - 1} ${Y.shoulder - 10} ${CX + n} ${top} Z`;
+    return shape(d, shade(c.skin, -0.04), 2.6) + `<path d="M${CX - n} ${top + 2} Q${CX} ${Y.neckTop + 12} ${CX + n} ${top + 2} L${CX + n} ${top} L${CX - n} ${top} Z" fill="${INK}" opacity=".28"/>
+      <path d="M${CX - n * 0.45} ${Y.neckTop + 8} l-1 7 M${CX + n * 0.45} ${Y.neckTop + 8} l1 7" stroke="${shade(c.skin, -0.3)}" stroke-width="1.2" opacity=".5" stroke-linecap="round"/>`
       + tattoosOn(c, ['neck', 'chest']);
   }
   function drawNeckwear(c) {
@@ -1421,6 +1472,18 @@ const Avatar = (() => {
     const bt = a.outfit?.bottom, shoesFirst = ['gown', 'longskirt', 'flares'].includes(bt?.id) || (fitOf(bt) === 'baggy' && !['harem', 'shorts', 'skirt', 'kilt', 'tutu'].includes(bt?.id));
     const armA = drawArm(c, 'A'), armB = drawArm(c, 'B');
     const shoulderA = c.pose.A[0], shoulderB = c.pose.B[0];
+    // Seamless shoulders: inside a circle round the shoulder we show a copy of the arm BEHIND the torso (so the
+    // shoulder cap covers its root); outside it the real arm is drawn in front as usual. Same shape, so no seam.
+    const joint = key => {
+      const [S, E, H] = c.pose[key], R = Math.min(30, Math.hypot(E[0] - S[0], E[1] - S[1]) * 0.6, Math.hypot(H[0] - S[0], H[1] - S[1]) - 16);
+      if (R < 10) return null;
+      c.defs.push(`<clipPath id="${c.id}j${key}i"><circle cx="${S[0]}" cy="${S[1]}" r="${R.toFixed(1)}"/></clipPath>`,
+        `<clipPath id="${c.id}j${key}o"><path clip-rule="evenodd" d="M-200 -200 H600 V600 H-200 Z M${S[0] - R} ${S[1]} a${R} ${R} 0 1 0 ${R * 2} 0 a${R} ${R} 0 1 0 ${-R * 2} 0 Z"/></clipPath>`);
+      return { inner: `clip-path="url(#${c.id}j${key}i)"`, outer: `clip-path="url(#${c.id}j${key}o)"` };
+    };
+    const jA = joint('A'), jB = joint('B');
+    const backArm = (key, s, j, o) => j ? `<g class="av-arm${key}" style="transform-origin:${o[0]}px ${o[1]}px"><g ${j.inner}>${s}</g></g>` : '';
+    const frontArm = (s, j) => j ? `<g ${j.outer}>${s}</g>` : s;
 
     const body = `
       <ellipse cx="${CX}" cy="${Y.foot + 2}" rx="${46 + c.b.hw * 0.4 + (c.stance === 'power' ? 22 : c.stance === 'wide' ? 12 : 0)}" ry="9" fill="#000" opacity=".28"/>
@@ -1428,6 +1491,7 @@ const Avatar = (() => {
         ${hairBack(c)}
         ${drawLegs(c)}
         ${drawNeck(c)}
+        ${backArm('A', armA, jA, shoulderA)}${backArm(front ? 'B2' : 'B', armB, jB, shoulderB)}
         ${drawTorso(c)}
         ${tattoosOn(c, ['chest'])}
         ${shoesFirst ? drawShoes(c) + drawBottoms(c) : drawBottoms(c) + drawShoes(c)}
@@ -1436,7 +1500,7 @@ const Avatar = (() => {
         ${drawOuter(c)}
         ${drawNeckwear(c)}
         ${instPre}
-        <g class="av-head" style="transform-origin:${CX}px ${Y.neckTop}px"><g transform="translate(${CX} ${Y.neckTop + 6}) scale(${c.b.head.toFixed(3)}) translate(${-CX} ${-Y.neckTop - 6})">
+        <g class="av-head" style="transform-origin:${CX}px ${Y.neckTop}px"><g transform="translate(${CX} ${Y.neckTop - 1}) scale(${c.b.head.toFixed(3)}) translate(${-CX} ${-Y.neckTop - 6})">
           ${headBack(c)}
           ${drawHead(c)}
           ${hairFront(c)}
@@ -1444,15 +1508,15 @@ const Avatar = (() => {
           ${drawHat(c)}
         </g></g>
         ${instBack}
-        <g class="av-armB" style="transform-origin:${shoulderB[0]}px ${shoulderB[1]}px">${front ? '' : armB}</g>
+        <g class="av-armB" style="transform-origin:${shoulderB[0]}px ${shoulderB[1]}px">${front ? '' : frontArm(armB, jB)}</g>
         <g class="av-inst">${instFront}</g>
-        <g class="av-armB2">${front ? armB : ''}</g>
-        <g class="av-armA" style="transform-origin:${shoulderA[0]}px ${shoulderA[1]}px">${armA}</g>
+        <g class="av-armB2">${front ? frontArm(armB, jB) : ''}</g>
+        <g class="av-armA" style="transform-origin:${shoulderA[0]}px ${shoulderA[1]}px">${frontArm(armA, jA)}</g>
       </g>`;
 
     const anim = opt.anim || 'idle';
     // face close-up: frame the head (it scales with the head slider and the body height)
-    const headY = Y.foot + (Y.neckTop + 6 - (90 - 60) * c.b.head - Y.foot) * h;
+    const headY = Y.foot + (Y.neckTop - 1 - (90 - 60) * c.b.head - Y.foot) * h;
     const vb = opt.view === 'face' ? `${CX - 75} ${(headY - 72).toFixed(1)} 150 150` : '-30 -70 300 410';
     return `<svg class="avatar anim-${anim} inst-${c.pose.type}${opt.view === 'face' ? ' view-face' : ''}" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img"
       aria-label="${esc(opt.title || 'Rockstar')}">

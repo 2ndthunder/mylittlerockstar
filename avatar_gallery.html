@@ -1,0 +1,15 @@
+<!doctype html><html><title>Avatar gallery (dev tool) - refresh for new random rockstars</title><body style="background:#1b1830;margin:0;display:flex;flex-wrap:wrap;gap:4px">
+<script src="assets/js/avatar.js"></script>
+<script>
+fetch('assets/data/catalog.json').then(r=>r.json()).then(cat=>{
+  Avatar.catalog=cat;
+  const types=['guitar','bass','vocals','drums','keys','violin','guitar','vocals','none','bass','guitar','drums'];
+  types.forEach((t,i)=>{
+    const a=Avatar.random(cat,{instrument:t==='none'?'guitar':t, freeOnly:false});
+    if(t==='none') a.showInstrument=false;
+    if(i===6){a.instrument.model='stand';a.instrument.type='vocals';}
+    const d=document.createElement('div');d.style.width='210px';d.innerHTML=Avatar.svg(a,{anim:'none'});document.body.appendChild(d);
+  });
+  window.done=true;
+});
+</script></body></html>

@@ -324,8 +324,11 @@ function act_practice_finish(array $r, string $token, $result): array
     $x = add_xp($r, (8 + $res['accuracy'] / 10) * live_mult($res['accuracy']));
     save_rockstar($r);
     return ['message' => sprintf('%s +%.1f (now %.1f).%s +%d XP (live bonus x%.2f)', SKILLS[$skill], $gain, $r[$skill], $res['wpm'] ? " {$res['wpm']} WPM." : '', $x['xp'], live_mult($res['accuracy'])),
-        'gain' => $gain] + $x;
+        'gain' => $gain] + $x + emit_after('practice', (int)$r['id'], ['live' => true, 'accuracy' => $res['accuracy']]);
 }
+
+/** Fire an event and contribute nothing to the response (helper for expression contexts). */
+function emit_after(string $event, int $rid, array $data = []): array { emit($event, $rid, $data); return []; }
 
 function act_practice_auto(array $r, string $skill): array
 {
@@ -338,6 +341,7 @@ function act_practice_auto(array $r, string $skill): array
     $r['energy'] -= PRACTICE_ENERGY * (1 - $r['stamina'] / 250);
     $x = add_xp($r, 8);
     save_rockstar($r);
+    emit('practice', (int)$r['id'], ['live' => false]);
     return ['message' => sprintf('Autopilot practice: %s +%.1f, +%d XP. Practice live for bigger gains.', SKILLS[$skill], $gain, $x['xp'])] + $x;
 }
 
@@ -362,10 +366,13 @@ function act_learn_finish(array $r, string $token, $result): array
         db()->prepare('UPDATE songs SET tightness = ' . sql_min() . '(100, tightness + 5) WHERE id = ?')->execute([$p['song']]);
         $x = add_xp($r, (20 + $res['accuracy'] / 5) * live_mult($res['accuracy']));
         save_rockstar($r);
+        emit('learn', (int)$r['id'], ['accuracy' => $res['accuracy']]);
+        if ($new) emit('song_learned', (int)$r['id'], ['count' => 1]);
         return ['message' => ($new ? 'Song learned! It can now be played on autopilot. ' : 'Nice run! ') . "+{$x['xp']} XP.", 'learned' => true] + $x;
     }
     $x = add_xp($r, 6);
     save_rockstar($r);
+    emit('learn', (int)$r['id'], ['accuracy' => $res['accuracy']]);
     return ['message' => sprintf('%d%% — you need %d%% to learn it. Try again!', $res['accuracy'], LEARN_ACCURACY), 'learned' => false] + $x;
 }
 
@@ -403,6 +410,7 @@ function act_write_song(array $r, array $in): array
     save_rockstar($r);
     $word = $quality >= 80 ? 'a potential hit' : ($quality >= 60 ? 'a strong track' : ($quality >= 40 ? 'a decent song' : 'a rough demo'));
     news((int)$r['id'], 'song', "You wrote \"$title\" — $word.");
+    emit('song_written', (int)$r['id']);
     return ['message' => "You wrote \"$title\" (quality " . round($quality) . "). It's $word!", 'quality' => $quality];
 }
 
@@ -425,6 +433,7 @@ function act_release(array $r, int $songId): array
     add_xp($r, 20);
     save_rockstar($r);
     news((int)$r['id'], 'release', "\"{$s['title']}\" is out! $launch streams on day one.");
+    emit('release', (int)$r['id']);
     return ['message' => "\"{$s['title']}\" is released! $launch streams and $fans new fans.", 'tierUp' => $tier['tierUp']];
 }
 
@@ -486,6 +495,8 @@ function rehearse_apply(array $r, array $songs, array $accs, bool $live, int $wp
     $msg = sprintf('%s rehearsal: songs tightened %s, chemistry +%.1f, +%d XP%s.', $live ? 'Live' : 'Autopilot',
         implode(' ', array_map(fn($g) => "+$g", $gains)), $chem, $x['xp'], $live ? sprintf(' (live bonus x%.2f)', $mult) : '');
     if ($learnedNow) $msg .= ' Learned: ' . implode(', ', $learnedNow) . '!';
+    emit('rehearsal', (int)$r['id'], ['live' => $live, 'accuracy' => $acc, 'songs' => count($songs)]);
+    if ($learnedNow) emit('song_learned', (int)$r['id'], ['count' => count($learnedNow)]);
     return ['message' => $msg, 'accuracy' => round($acc, 1), 'live' => $live] + $x;
 }
 
@@ -514,7 +525,7 @@ function chart_of(array $s): array
 function recruits(array $r): array
 {
     $band = band_of($r);
-    $day = gmdate('Y-m-d');
+    $day = today();
     $taken = db()->prepare('SELECT slot FROM recruit_log WHERE rockstar_id = ? AND day = ?');
     $taken->execute([$r['id'], $day]);
     $taken = array_column($taken->fetchAll(), 'slot');
@@ -557,10 +568,11 @@ function act_hire(array $r, int $slot): array
     spend($r, $c['signing'], 'the signing fee');
     db()->prepare('INSERT INTO bandmates (band_id, name, role, pronouns, personality, skill, wage, appearance, hired_at) VALUES (?,?,?,?,?,?,?,?,?)')
         ->execute([$band['id'], $c['name'], $c['role'], $c['pronouns'], $c['personality'], $c['skill'], $c['wage'], json_encode($c['appearance']), time()]);
-    db()->prepare(insert_ignore() . ' INTO recruit_log (rockstar_id, day, slot) VALUES (?,?,?)')->execute([$r['id'], gmdate('Y-m-d'), $slot]);
+    db()->prepare(insert_ignore() . ' INTO recruit_log (rockstar_id, day, slot) VALUES (?,?,?)')->execute([$r['id'], today(), $slot]);
     db()->prepare('UPDATE bands SET chemistry = ' . sql_max() . '(5, chemistry - 6) WHERE id = ?')->execute([$band['id']]);
     save_rockstar($r);
     news((int)$r['id'], 'band', "{$c['name']} joined the band on " . strtolower($c['roleName']) . '!');
+    emit('hire', (int)$r['id']);
     return ['message' => "{$c['name']} joined on " . strtolower($c['roleName']) . '! Rehearse together to build chemistry.'];
 }
 
@@ -578,6 +590,7 @@ function act_fire(array $r, int $mateId): array
     $r['mood'] = clampf($r['mood'] - 6, 0, 100);
     save_rockstar($r);
     news((int)$r['id'], 'band', "{$m['name']} left the band. It got awkward.");
+    emit('fire', (int)$r['id']);
     return ['message' => "You let {$m['name']} go (\$$severance severance). The band is a little shaken."];
 }
 
@@ -591,6 +604,7 @@ function act_hangout(array $r): array
     $r['mood'] = clampf($r['mood'] + 10, 0, 100);
     $r['charisma'] = min(100, $r['charisma'] + 0.3);
     save_rockstar($r);
+    emit('hangout', (int)$r['id']);
     return ['message' => 'Pizza, arcade, terrible karaoke. Band chemistry and mood up!'];
 }
 
@@ -668,17 +682,24 @@ function act_gig_finish(array $r, string $token, array $results, array $moves): 
         $chance = 0.35 + $r[$m['skill']] / 160 - $m['risk'] * 0.07 + (trait_is($r, 'wildchild') && $m['risk'] >= 3 ? 0.15 : 0);
         $ok = frand() < clampf($chance, 0.1, 0.95);
         $perf += $ok ? $m['risk'] * 3 : -$m['risk'] * 2.5;
-        $moveLog[] = ['move' => $m['name'], 'ok' => $ok];
+        $moveLog[] = ['move' => $m['name'], 'key' => $mv, 'ok' => $ok];
     }
     $perf = round(clampf($perf, 0, 100), 1);
 
     // ---- crowd & money
     $draw = 0.1 + 0.3 / $v['tier'] + $r['fans'] / max(1, $v['cap'] * 2.5) + $r['fame'] / max(200, $v['fame'] * 5 + 200);
-    $attendance = (int)round(clampf($v['cap'] * clampf($draw, 0.1, 1) * frand(0.85, 1.1), 3, $v['cap']));
-    $gross = $v['ticket'] > 0 ? (int)round($attendance * $v['ticket'] * (0.45 + $perf / 250)) : (int)round($attendance * $perf / 40 * frand(0.6, 1.3));
+    // crowds shrink if you keep playing the same room
+    $recent = db()->prepare('SELECT COUNT(*) FROM gigs WHERE rockstar_id = ? AND venue = ? AND played_at > ?');
+    $recent->execute([$r['id'], $p['venue'], time() - 86400]);
+    $repeat = max(0.35, 1 - REPEAT_VENUE_PENALTY * (int)$recent->fetchColumn());
+    $attendance = (int)round(clampf($v['cap'] * clampf($draw, 0.1, 1) * $repeat * frand(0.85, 1.1), 3, $v['cap']));
+    $gross = $v['ticket'] > 0
+        ? (int)round($attendance * $v['ticket'] * ARTIST_SHARE * (0.6 + $perf / 200))       // the band's cut of the door
+        : (int)round($attendance * $perf / 40 * frand(0.6, 1.3));                              // tip jar
+    $crew = $v['tier'] >= 3 ? CREW_COST_PER_TIER * $v['tier'] ** 2 : 0;
     if (perk($r, 'cash_gain')) $gross = (int)round($gross * 1.2);
     $wages = array_sum(array_column($mates, 'wage'));
-    $net = $gross - $wages - $moveCost;
+    $net = $gross - $wages - $moveCost - $crew;
     $fans = (int)round($attendance * pow($perf / 100, 2) * 0.45 * (1 + $r['charisma'] / 200) * (perk($r, 'fan_gain') ? 1.25 : 1));
     $fame = (int)round(($fans * 0.6 + $v['tier'] * $perf / 12) * (perk($r, 'fame_gain') ? 1.25 : 1));
     $stars = max(1, min(5, (int)ceil($perf / 20)));
@@ -712,9 +733,11 @@ function act_gig_finish(array $r, string $token, array $results, array $moves): 
     db()->prepare('INSERT INTO gigs (rockstar_id, venue, setlist, performance, attendance, earnings, fans_gained, fame_gained, stars, review, played_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
         ->execute([$r['id'], $p['venue'], json_encode($p['songs']), $perf, $attendance, $net, $fans, $fame, $stars, $review, time()]);
     news((int)$r['id'], 'gig', "{$v['name']}: " . str_repeat('★', $stars) . " — $attendance people, $fans new fans.");
+    emit('gig', (int)$r['id'], ['venue' => $p['venue'], 'stars' => $stars, 'live_songs' => count($liveAcc), 'live_accuracy' => $avgLive, 'moves' => $moveLog]);
+    if ($learnedNow) emit('song_learned', (int)$r['id'], ['count' => count($learnedNow)]);
 
     return [
-        'result' => compact('perf', 'attendance', 'gross', 'wages', 'moveCost', 'net', 'fans', 'fame', 'stars', 'review') + [
+        'result' => compact('perf', 'attendance', 'gross', 'wages', 'crew', 'moveCost', 'net', 'fans', 'fame', 'stars', 'review') + [
             'moves' => $moveLog, 'accuracy' => round($acc, 1), 'wpm' => $wpm, 'combo' => $combo, 'tierUp' => $tierInfo['tierUp'], 'tier' => $tierInfo['tier'],
             'xp' => $xp['xp'], 'xpMult' => round($xpMult, 2), 'levelUp' => $xp['levelUp'], 'level' => $xp['level'],
             'liveSongs' => count($liveAcc), 'autoSongs' => count($songs) - count($liveAcc), 'learned' => $learnedNow,
@@ -758,6 +781,7 @@ function act_buy(array $r, string $group, string $id): array
     spend($r, (int)$item['price'], $item['name']);
     db()->prepare('INSERT INTO wardrobe (rockstar_id, item, bought_at) VALUES (?,?,?)')->execute([$r['id'], item_key($group, $id), time()]);
     save_rockstar($r);
+    emit('buy', (int)$r['id']);
     return ['message' => "You bought {$item['name']}. Try it on!"];
 }
 

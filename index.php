@@ -1,4 +1,10 @@
-<?php declare(strict_types=1); ?>
+<?php
+declare(strict_types=1);
+// Security headers for the page shell. Inline styles are used by the renderer; scripts are same-origin only.
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+header('X-Content-Type-Options: nosniff');
+header('Referrer-Policy: same-origin');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

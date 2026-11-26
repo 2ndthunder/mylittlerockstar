@@ -39,12 +39,26 @@ On nginx, deny those paths yourself.
 | **Wardrobe** | Buy premium items (some need fame) and restyle anytime. |
 | **Fame tiers** | Garage Nobody → Open-Mic Regular → Local Buzz → Club Circuit → Rising Star → Headliner → Arena Act → Rock Legend. |
 
+## Develop
+
+```
+php tests/run.php                  # integration tests (in-memory SQLite)
+php tools/simulate.php 30 75 50    # 30-day balance curve at 75% accuracy, half the songs played live
+php tools/export_schema.php        # regenerate sql/schema.*.sql
+php tools/seed_demo.php 12         # demo rockstars for the charts (--remove to undo)
+```
+
+Every setting in `config.php` can be overridden with an environment variable named `MLR_<SETTING>`
+(for example `MLR_DB_DRIVER=mysql`). See `docs/ARCHITECTURE.md`, `docs/API.md` and `docs/ROADMAP.md`.
+
 ## Art
 
 * **Venues and stages:** painted by Gemini (`assets/art/`; full-size originals in `raw/`).
 * **Characters:** a layered 2.5D SVG renderer (`assets/js/avatar.js`) styled after Gemini's character sheet
   (`assets/art/character_style_sheet.jpg`): big heads (about a third of total height), thick outlines, flat cel colours,
   heavy-lidded eyes, chunky boots. Every part is drawn separately, so any combination works and recolours freely.
+* **Style target:** `assets/art/style_target.jpg` is where the character art is heading: thick outlines, flat bold
+  colour, big angular faces with round white eyes, sharp grins, spiky hair, baggy clothes.
 * `avatar_gallery.html` is a dev page that shows 12 random rockstars; refresh it for new ones.
 
 ## Files
@@ -64,7 +78,13 @@ assets/js/stage.js     typing rhythm engine + synthesised backing band
 assets/js/app.js       game UI
 assets/css/style.css   styles
 sql/schema.*.sql       exported schemas (php tools/export_schema.php)
-docs/GAME_DESIGN.md    design notes and roadmap
+lib/migrations.php     numbered schema migrations
+lib/progress.php       event bus, achievements, daily goals
+lib/social.php         profiles, follows, leaderboards
+lib/security.php       login throttling
+tests/run.php          integration tests
+tools/                 simulate.php, export_schema.php, seed_demo.php
+docs/                  GAME_DESIGN, ARCHITECTURE, API, ROADMAP, GEMINI_PROMPTS
 ```
 
 ## Adding content

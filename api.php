@@ -7,12 +7,18 @@ require __DIR__ . '/lib/db.php';
 require __DIR__ . '/lib/catalog.php';
 require __DIR__ . '/lib/looks.php';
 require __DIR__ . '/lib/game.php';
+require __DIR__ . '/lib/progress.php';
+require __DIR__ . '/lib/social.php';
+require __DIR__ . '/lib/security.php';
 
 session_name('mlr_session');   // own cookie name: other localhost games (e.g. Nexokin) must not share our login
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: same-origin');
 
 function out(array $d, int $code = 200): never { http_response_code($code); echo json_encode($d, JSON_UNESCAPED_UNICODE); exit; }
 function uid(): int
@@ -27,7 +33,17 @@ function uid(): int
     }
     return (int)$_SESSION['uid'];
 }
-function with_state(array $res): array { return $res + public_state(uid()) + ['csrf' => $_SESSION['csrf']]; }
+function with_state(array $res): array
+{
+    $state = public_state(uid());
+    if ($state['rockstar']) {
+        $rid = rockstar_id(uid());
+        $state['goals'] = daily_goals($rid);
+        $state['notices'] = array_merge($res['notices'] ?? [], take_notices());
+    }
+    unset($res['notices']);
+    return $res + $state + ['csrf' => $_SESSION['csrf']];
+}
 
 $in = json_decode(file_get_contents('php://input') ?: '[]', true) ?: [];
 $in += $_GET;
@@ -68,10 +84,13 @@ try {
         }
 
         case 'login': {
+            $uname = trim((string)($in['username'] ?? ''));
+            login_throttle($uname);
             $st = $pdo->prepare('SELECT id, pass_hash FROM users WHERE LOWER(username) = LOWER(?)');
-            $st->execute([trim((string)($in['username'] ?? ''))]);
+            $st->execute([$uname]);
             $u = $st->fetch();
-            if (!$u || !password_verify((string)($in['password'] ?? ''), $u['pass_hash'])) fail('Wrong username or password.');
+            if (!$u || !password_verify((string)($in['password'] ?? ''), $u['pass_hash'])) { login_failed($uname); fail('Wrong username or password.'); }
+            if (password_needs_rehash($u['pass_hash'], PASSWORD_DEFAULT)) $pdo->prepare('UPDATE users SET pass_hash = ? WHERE id = ?')->execute([password_hash((string)$in['password'], PASSWORD_DEFAULT), $u['id']]);
             session_regenerate_id(true);
             $_SESSION['uid'] = (int)$u['id'];
             $_SESSION['csrf'] = bin2hex(random_bytes(16));
@@ -106,15 +125,14 @@ try {
         case 'rehearse_auto':  out(with_state($tx(fn() => act_rehearse_auto(load_rockstar(uid()), (array)($in['songs'] ?? [])))));
         case 'learn_start':    out(act_learn_start(load_rockstar(uid()), (int)($in['song'] ?? 0)));
         case 'learn_finish':   out(with_state($tx(fn() => act_learn_finish(load_rockstar(uid()), (string)($in['token'] ?? ''), $in['result'] ?? []))));
+        case 'claim_goal':     out(with_state($tx(fn() => act_claim_goal(load_rockstar(uid()), (int)($in['slot'] ?? -1)))));
+        case 'achievements':   out(['achievements' => achievements_view(rockstar_id(uid()))]);
+        case 'profile':        out(['profile' => public_profile((string)($in['name'] ?? ''), rockstar_id(uid(), false))]);
+        case 'follow':         out($tx(fn() => act_follow(rockstar_id(uid()), (string)($in['name'] ?? ''), !empty($in['on']))));
         case 'spend_point':    out(with_state($tx(fn() => act_spend_point(load_rockstar(uid()), (string)($in['skill'] ?? '')))));
         case 'gig_finish':     out(with_state($tx(fn() => act_gig_finish(load_rockstar(uid()), (string)($in['token'] ?? ''), (array)($in['results'] ?? []), (array)($in['moves'] ?? [])))));
 
-        case 'leaderboard': {
-            $rows = $pdo->query('SELECT r.stage_name, r.fame, r.fans, r.appearance, r.gigs_played, r.best_wpm, b.name AS band, b.genre
-                FROM rockstars r JOIN bands b ON b.rockstar_id = r.id ORDER BY r.fame DESC, r.fans DESC LIMIT 25')->fetchAll();
-            foreach ($rows as &$x) { $x['appearance'] = json_decode($x['appearance'], true); $x['tier'] = fame_tier((int)$x['fame'])['name']; }
-            out(['leaders' => $rows]);
-        }
+        case 'leaderboard': out(['leaders' => leaderboard((string)($in['by'] ?? 'fame'))]);
 
         default: out(['error' => 'Unknown action.'], 400);
     }

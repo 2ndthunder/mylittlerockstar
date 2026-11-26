@@ -21,6 +21,7 @@ async function api(action, data = {}, { quiet = false } = {}) {
   if (j.csrf) G.csrf = j.csrf;
   if ('rockstar' in j) G.state = j;
   if (j.message && !quiet) toast(j.message);
+  (j.notices || []).forEach((n, i) => setTimeout(() => toast(n.text, n.kind), 500 + i * 900));
   return j;
 }
 
@@ -34,7 +35,7 @@ function modal(html, { wide = false } = {}) {
   const d = $('#modal'); d.classList.toggle('wide', wide); $('.modal-body', d).innerHTML = html; if (!d.open) d.showModal(); return $('.modal-body', d);
 }
 function closeModal() { const d = $('#modal'); if (d.open) d.close(); }
-$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.closest('[data-close]')) closeModal(); });
 function confirmBox(text, yes = 'Yes') {
   return new Promise(res => {
     const b = modal(`<h2 id="modalTitle">Are you sure?</h2><p>${esc(text)}</p><div class="row end"><button class="btn ghost" data-r="0">Cancel</button><button class="btn danger" data-r="1">${esc(yes)}</button></div>`);
@@ -135,11 +136,23 @@ function viewHome(main) {
         ${Object.entries(G.game.skills).map(([k, l]) => `<div class="skill-row">${meter(l, r.skills[k])}${r.skillPoints ? `<button class="btn small" data-pt="${k}" aria-label="Spend a point on ${esc(l)}">+2</button>` : ''}</div>`).join('')}
         <p class="muted">Best typing speed: <b>${r.bestWpm} WPM</b> · Gigs played: <b>${r.gigsPlayed}</b></p></section>
       <section class="card"><h2>What next?</h2>${nextSteps().map(s => `<button class="btn block" data-go="${s.tab}">${esc(s.text)}</button>`).join('')}</section>
+      <section class="card"><h2>Daily goals</h2>${goalsHtml()}</section>
       <section class="card"><h2>Rock news</h2><ul class="news">${G.state.news.map(n => `<li class="n-${n.kind}">${esc(n.text)}</li>`).join('') || '<li>Nothing yet.</li>'}</ul></section>
     </div>`;
   $$('[data-go]', main).forEach(b => b.addEventListener('click', () => { G.tab = b.dataset.go; render(); }));
+  $$('[data-claim]', main).forEach(b => b.addEventListener('click', async () => { try { await api('claim_goal', { slot: +b.dataset.claim }); render(); } catch {} }));
   $$('[data-pt]', main).forEach(b => b.addEventListener('click', async () => { try { await api('spend_point', { skill: b.dataset.pt }, { quiet: true }); render(); toast('Skill improved!'); } catch (e) { toast(e.message, 'bad'); } }));
 }
+function goalsHtml() {
+  const goals = G.state.goals || [];
+  if (!goals.length) return '<p class="muted">New goals arrive every day.</p>';
+  return `<ul class="goals">${goals.map(g => `<li class="${g.claimed ? 'claimed' : g.done ? 'done' : ''}">
+    <div><b>${esc(g.text)}</b><small>Reward: ${money(g.reward.cash)} + ${g.reward.xp} XP</small></div>
+    ${meter('', g.progress, 'compact', g.target)}
+    ${g.claimed ? '<span class="tag good">Claimed ✓</span>' : g.done ? `<button class="btn small gold" data-claim="${g.slot}">Claim</button>` : `<span class="muted">${g.progress}/${g.target}</span>`}
+  </li>`).join('')}</ul><p class="muted">Resets daily (UTC).</p>`;
+}
+
 function nextSteps() {
   const s = [], songs = G.state.songs, mates = G.state.band.members;
   if (!songs.length) s.push({ tab: 'songs', text: '✍️ Write your first song' });
@@ -215,7 +228,7 @@ function viewSongs(main) {
   $$('[data-release]', main).forEach(b => b.addEventListener('click', async () => { try { await api('release', { song: +b.dataset.release }); render(); } catch {} }));
   $$('[data-lyrics]', main).forEach(b => b.addEventListener('click', () => {
     const s = songs.find(x => x.id === +b.dataset.lyrics);
-    modal(`<h2 id="modalTitle">${esc(s.title)}</h2><pre class="lyrics">${esc(s.lyrics.join('\n'))}</pre><div class="row end"><button class="btn" onclick="closeModal()">Close</button></div>`);
+    modal(`<h2 id="modalTitle">${esc(s.title)}</h2><pre class="lyrics">${esc(s.lyrics.join('\n'))}</pre><div class="row end"><button class="btn" data-close>Close</button></div>`);
   }));
   const picked = () => { const ids = $$('.pick:checked', main).map(x => +x.value); if (!ids.length || ids.length > 3) { toast('Select 1 to 3 songs to rehearse.', 'bad'); return null; } return ids; };
   $('#rehearseBtn')?.addEventListener('click', () => { const ids = picked(); if (ids) runRehearsal(ids); });
@@ -236,7 +249,7 @@ function writeSongDialog() {
       <label class="ctl">Your own lyrics <span class="muted">(optional — one line per row; these become what you type on stage)</span>
         <textarea name="lyrics" rows="5" maxlength="480" placeholder="Leave empty and the muse will write them"></textarea></label>
       <p class="muted">Themes that fit the genre and genres you love write better songs. Good mood helps. Costs ${g.costs.write} energy.</p>
-      <div class="row end"><button type="button" class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary">Write it</button></div>
+      <div class="row end"><button type="button" class="btn ghost" data-close>Cancel</button><button class="btn primary">Write it</button></div>
     </form>`);
   const f = $('#songForm', b);
   f.bpm.addEventListener('input', () => ($('#bpmVal', b).textContent = f.bpm.value));
@@ -331,7 +344,7 @@ function setlistDialog(venueKey) {
     <div class="setlist">${songs.map(s => `<div class="set-song"><label><input type="checkbox" value="${s.id}"> <b>${esc(s.title)}</b></label>
       <small>Q ${s.quality} · Tight ${s.tightness} · ${s.bpm} BPM</small>
       <select data-mode="${s.id}" aria-label="How to play ${esc(s.title)}"><option value="live">🎸 Live</option><option value="auto" ${s.learned ? '' : 'disabled'}>🤖 Auto${s.learned ? '' : ' (learn first)'}</option></select></div>`).join('')}</div>
-    <div class="row end"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn primary" id="goGig">Take the stage 🤘</button></div>`);
+    <div class="row end"><button class="btn ghost" data-close>Cancel</button><button class="btn primary" id="goGig">Take the stage 🤘</button></div>`);
   $('#goGig', b).addEventListener('click', () => {
     const ids = $$('input:checked', b).map(x => +x.value);
     if (ids.length < v.songs[0] || ids.length > v.songs[1]) return toast(`Pick ${v.songs[0]}–${v.songs[1]} songs.`, 'bad');
@@ -393,7 +406,7 @@ function showResults(o, v, x) {
       <div><b>${x.accuracy}%</b><small>Accuracy</small></div><div><b>+${num(x.xp)}</b><small>XP${x.xpMult > 1 ? ` (live ×${x.xpMult})` : ''}</small></div>
     </div>
     <p class="muted">${x.liveSongs} song(s) played live, ${x.autoSongs} on autopilot.${x.learned?.length ? ` Learned: ${x.learned.map(esc).join(', ')}!` : ''}</p>
-    <p>Gross ${money(x.gross)} − wages ${money(x.wages)}${x.moveCost ? ` − effects ${money(x.moveCost)}` : ''} = <b>${money(x.net)}</b></p>
+    <p>Your cut ${money(x.gross)} − wages ${money(x.wages)}${x.crew ? ` − crew ${money(x.crew)}` : ''}${x.moveCost ? ` − effects ${money(x.moveCost)}` : ''} = <b>${money(x.net)}</b></p>
     ${x.moves.length ? `<ul>${x.moves.map(m => `<li>${m.ok ? '✅' : '💥'} ${esc(m.move)}</li>`).join('')}</ul>` : ''}
     <div class="row end"><button class="btn primary" id="doneGig">Back to the garage</button></div>`;
   announce(`${x.stars} stars. ${x.review}`);
@@ -464,6 +477,15 @@ function viewProfile(main) {
       <label class="ctl">Hometown <input name="hometown" value="${esc(r.hometown)}" maxlength="60"></label>
       <label class="ctl">Bio <textarea name="bio" rows="4" maxlength="600">${esc(r.bio || '')}</textarea></label>
       <div class="row end"><button class="btn primary">Save profile</button></div></form></section></div>`;
+  main.insertAdjacentHTML('beforeend', `<section class="card"><h2>Achievements</h2><div class="ach-grid" id="achGrid"><p>Loading…</p></div></section>`);
+  api('achievements', {}, { quiet: true }).then(({ achievements }) => {
+    const done = achievements.filter(a => a.unlocked).length;
+    $('#achGrid').innerHTML = `<p class="muted" style="grid-column:1/-1">${done} of ${achievements.length} unlocked</p>` + achievements.map(a => `
+      <div class="ach ${a.unlocked ? 'on' : ''}" aria-label="${esc(a.name)}: ${a.unlocked ? 'unlocked' : 'locked'}">
+        <span class="ach-icon" aria-hidden="true">${a.icon}</span><b>${esc(a.name)}</b><small>${esc(a.desc)}</small>
+        ${a.unlocked ? '<small class="good">Unlocked ✓</small>' : meter('', a.progress, 'compact', a.target)}
+      </div>`).join('');
+  }).catch(() => {});
   $('#profForm').addEventListener('submit', async e => {
     e.preventDefault();
     try { await api('update_profile', Object.fromEntries(new FormData(e.target))); render(); } catch {}
@@ -471,13 +493,34 @@ function viewProfile(main) {
 }
 
 /* ================================================================ CHARTS */
-async function viewCharts(main) {
-  main.innerHTML = '<section class="card"><h2>The Charts</h2><ol class="charts"><li>Loading…</li></ol></section>';
+const CHART_TABS = [['fame', 'Fame'], ['level', 'Level'], ['fans', 'Fans'], ['wpm', 'Typing speed'], ['gigs', 'Gigs played']];
+async function viewCharts(main, by = 'fame') {
+  main.innerHTML = `<section class="card"><h2>The Charts</h2>
+    <div class="seg chart-tabs" role="tablist">${CHART_TABS.map(([k, l]) => `<button role="tab" aria-selected="${k === by}" data-by="${k}">${l}</button>`).join('')}</div>
+    <ol class="charts"><li>Loading…</li></ol></section>`;
+  $$('[data-by]', main).forEach(b => b.addEventListener('click', () => viewCharts(main, b.dataset.by)));
   try {
-    const { leaders } = await api('leaderboard', {}, { quiet: true });
+    const { leaders } = await api('leaderboard', { by }, { quiet: true });
+    const stat = l => ({ fame: `${num(l.fame)} fame`, level: `Level ${l.level}`, fans: `${num(l.fans)} fans`, wpm: `${l.best_wpm} WPM`, gigs: `${l.gigs_played} gigs` })[by];
     $('.charts', main).innerHTML = leaders.map((l, i) => `<li><span class="chart-pos">${i + 1}</span><span class="chart-face">${Avatar.svg({ ...l.appearance, showInstrument: false }, { anim: 'none' })}</span>
-      <span><b>${esc(l.stage_name)}</b> — ${esc(l.band)}<small>${esc(l.tier)} · ${num(l.fame)} fame · ${num(l.fans)} fans · ${l.best_wpm} WPM</small></span></li>`).join('');
+      <span><button class="linkish" data-profile="${esc(l.stage_name)}"><b>${esc(l.stage_name)}</b></button> — ${esc(l.band)}<small>${esc(l.tier)} · Lv ${l.level} · <b>${stat(l)}</b></small></span></li>`).join('')
+      || '<li>No rockstars yet.</li>';
+    $$('[data-profile]', main).forEach(b => b.addEventListener('click', () => openProfile(b.dataset.profile)));
   } catch {}
+}
+
+async function openProfile(name) {
+  let p; try { ({ profile: p } = await api('profile', { name }, { quiet: true })); } catch (e) { return toast(e.message, 'bad'); }
+  const b = modal(`<div class="profile-modal"><div class="mini-me">${Avatar.svg(p.appearance, { anim: 'idle', title: p.stageName })}</div>
+    <div><h2 id="modalTitle">${esc(p.stageName)}</h2><p class="muted">${esc(p.pronouns)} · ${esc(p.hometown || 'Hometown unknown')}</p>
+    <p><b>${esc(p.band.name)}</b> · ${esc(p.band.genre)} · ${esc(p.tier)}</p>
+    <p>Level ${p.level} · ${num(p.fame)} fame · ${num(p.fans)} fans · ${p.gigsPlayed} gigs · ${p.bestWpm} WPM · ${p.achievements}/${p.achievementsTotal} achievements · ${p.followers} followers</p>
+    ${p.bio ? `<blockquote>${esc(p.bio)}</blockquote>` : ''}
+    ${p.topSingles.length ? `<p><b>Top singles:</b> ${p.topSingles.map(s => `${esc(s.title)} (${num(s.streams)})`).join(', ')}</p>` : ''}
+    ${p.band.members.length ? `<div class="profile-band">${p.band.members.map(m => `<div title="${esc(m.name)} — ${esc(m.role)}">${Avatar.svg(m.appearance, { anim: 'none' })}<small>${esc(m.name)}</small></div>`).join('')}</div>` : ''}
+    </div></div>
+    <div class="row end">${p.isYou ? '' : `<button class="btn ${p.following ? 'ghost' : 'primary'}" id="followBtn">${p.following ? 'Unfollow' : 'Follow'}</button>`}<button class="btn ghost" data-close>Close</button></div>`, { wide: true });
+  $('#followBtn', b)?.addEventListener('click', async () => { try { await api('follow', { name, on: !p.following }); openProfile(name); } catch {} });
 }
 
 /* ================================================================ AUTH & CREATE */

@@ -22,7 +22,7 @@ function db(): PDO
 
 function is_mysql(): bool { return DB_DRIVER === 'mysql'; }
 
-/** Schema in a neutral dialect; {PK}, {TEXT}, {END} are swapped per driver. */
+/** Version-1 base schema (as first shipped — never edit; add a migration in lib/migrations.php). Neutral dialect; {PK}, {TEXT}, {END} are swapped per driver. */
 function schema_statements(string $driver): array
 {
     $map = $driver === 'mysql'
@@ -66,9 +66,6 @@ function schema_statements(string $driver): array
             fans INT NOT NULL DEFAULT 0,
             gigs_played INT NOT NULL DEFAULT 0,
             best_wpm INT NOT NULL DEFAULT 0,
-            xp INT NOT NULL DEFAULT 0,
-            level INT NOT NULL DEFAULT 1,
-            skill_points INT NOT NULL DEFAULT 0,
             last_rest INT NOT NULL DEFAULT 0,
             last_tick INT NOT NULL,
             created_at INT NOT NULL,
@@ -110,7 +107,6 @@ function schema_statements(string $driver): array
             lyrics {TEXT} NOT NULL,
             quality DOUBLE NOT NULL,
             tightness DOUBLE NOT NULL DEFAULT 0,
-            learned INT NOT NULL DEFAULT 0,
             times_played INT NOT NULL DEFAULT 0,
             released_at INT,
             streams INT NOT NULL DEFAULT 0,
@@ -170,40 +166,9 @@ function schema_statements(string $driver): array
     }, $sql);
 }
 
-/** Columns added after the first release; existing databases get them automatically. */
-const ADDED_COLUMNS = [
-    ['rockstars', 'xp', 'INT NOT NULL DEFAULT 0'],
-    ['rockstars', 'level', 'INT NOT NULL DEFAULT 1'],
-    ['rockstars', 'skill_points', 'INT NOT NULL DEFAULT 0'],
-    ['songs', 'learned', 'INT NOT NULL DEFAULT 0'],
-];
+require_once __DIR__ . '/migrations.php';
 
-function column_exists(PDO $pdo, string $table, string $col): bool
-{
-    if (DB_DRIVER === 'mysql') {
-        $st = $pdo->prepare("SHOW COLUMNS FROM `$table` LIKE ?");
-        $st->execute([$col]);
-        return (bool)$st->fetch();
-    }
-    foreach ($pdo->query("PRAGMA table_info($table)") as $c) if ($c['name'] === $col) return true;
-    return false;
-}
-
-function migrate(PDO $pdo): void
-{
-    foreach (schema_statements(DB_DRIVER) as $stmt) {
-        if (DB_DRIVER === 'mysql' && str_starts_with($stmt, 'CREATE INDEX')) {
-            preg_match('/INDEX IF NOT EXISTS (\w+) ON (\w+) \((.+)\)/', $stmt, $m);
-            $exists = $pdo->query("SHOW INDEX FROM `$m[2]` WHERE Key_name = '$m[1]'")->fetch();
-            if (!$exists) $pdo->exec("CREATE INDEX `$m[1]` ON `$m[2]` ($m[3])");
-            continue;
-        }
-        $pdo->exec($stmt);
-    }
-    foreach (ADDED_COLUMNS as [$table, $col, $ddl]) {
-        if (!column_exists($pdo, $table, $col)) $pdo->exec("ALTER TABLE $table ADD COLUMN $col $ddl");
-    }
-}
+function migrate(PDO $pdo): void { run_migrations($pdo); }
 
 function insert_ignore(): string { return is_mysql() ? 'INSERT IGNORE' : 'INSERT OR IGNORE'; }
 

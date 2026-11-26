@@ -271,3 +271,18 @@ dialog.wide { width: min(900px, 96vw); } dialog::backdrop { background: #05030ac
 .hw-note.l0 { background: #ff5c6c; } .hw-note.l1 { background: #ff9d3b; } .hw-note.l2 { background: #ffd23f; } .hw-note.l3 { background: #6ff0a0; }
 .hw-note.l4 { background: #29e0e0; } .hw-note.l5 { background: #4f8bff; } .hw-note.l6 { background: #b98cff; } .hw-note.l7 { background: #ff6fd1; }
 .autoplay .auto-lyric { font-size: 1.6rem; font-weight: 800; text-align: center; min-height: 2.4em; margin: 18px 0; color: var(--yellow); }
+
+/* ---------- goals, achievements, profiles, chart tabs */
+.goals { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.goals li { display: grid; grid-template-columns: 1fr 90px auto; gap: 10px; align-items: center; background: #0e0a18; border: 2px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+.goals li small { display: block; color: var(--muted); font-size: .8rem; } .goals li.done { border-color: var(--yellow); } .goals li.claimed { opacity: .6; }
+.goals .meter-row.compact { grid-template-columns: 1fr; } .goals .meter-row.compact b { display: none; }
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.ach { display: grid; gap: 4px; background: #0e0a18; border: 2px solid var(--line); border-radius: 14px; padding: 10px; filter: grayscale(.85); opacity: .75; }
+.ach.on { filter: none; opacity: 1; border-color: var(--yellow); } .ach-icon { font-size: 1.8rem; } .ach small { color: var(--muted); font-size: .8rem; } .ach .good { color: var(--good); }
+.chart-tabs { margin-bottom: 12px; flex-wrap: wrap; }
+.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--yellow); cursor: pointer; text-decoration: underline; }
+.profile-modal { display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: start; }
+.profile-band { display: flex; gap: 8px; flex-wrap: wrap; } .profile-band div { width: 70px; text-align: center; } .profile-band small { font-size: .7rem; color: var(--muted); }
+.toast.achievement { background: #2d2310; border-color: var(--yellow); } .toast.goal { background: #102a2d; border-color: var(--cyan); }
+@media (max-width: 700px) { .profile-modal { grid-template-columns: 1fr; } .goals li { grid-template-columns: 1fr; } }

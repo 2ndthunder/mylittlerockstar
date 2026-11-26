@@ -797,6 +797,32 @@ function act_update_look(array $r, array $appearance): array
     return ['message' => 'Looking good. New look saved.'];
 }
 
+/** Saved looks: up to presetsMax named outfits per rockstar. Validated like a real look, so locked items can't sneak in. */
+function presets_of(int $rid): array
+{
+    $q = db()->prepare('SELECT slot, name, appearance, saved_at FROM look_presets WHERE rockstar_id = ? ORDER BY slot');
+    $q->execute([$rid]);
+    return array_map(fn($p) => ['slot' => (int)$p['slot'], 'name' => $p['name'], 'appearance' => json_decode($p['appearance'], true), 'savedAt' => (int)$p['saved_at']], $q->fetchAll());
+}
+
+function act_save_preset(array $r, int $slot, string $name, array $appearance): array
+{
+    $max = (int)(looks()['presetsMax'] ?? 6);
+    if ($slot < 0 || $slot >= $max) fail('Pick a preset slot.');
+    $name = clean_text($name, 30, 1, 'Preset name');
+    $look = clean_appearance($appearance, owned_items((int)$r['id']), (int)$r['fame']);
+    db()->prepare('DELETE FROM look_presets WHERE rockstar_id = ? AND slot = ?')->execute([$r['id'], $slot]);
+    db()->prepare('INSERT INTO look_presets (rockstar_id, slot, name, appearance, saved_at) VALUES (?,?,?,?,?)')
+        ->execute([$r['id'], $slot, $name, json_encode($look), time()]);
+    return ['message' => "Saved \"$name\".", 'presets' => presets_of((int)$r['id'])];
+}
+
+function act_delete_preset(array $r, int $slot): array
+{
+    db()->prepare('DELETE FROM look_presets WHERE rockstar_id = ? AND slot = ?')->execute([$r['id'], $slot]);
+    return ['message' => 'Preset deleted.', 'presets' => presets_of((int)$r['id'])];
+}
+
 function act_update_profile(array $r, array $in): array
 {
     $r['bio'] = clean_text((string)($in['bio'] ?? $r['bio']), 600);
@@ -838,6 +864,7 @@ function public_state(int $uid): array
             'bestWpm' => (int)$r['best_wpm'],
             'level' => (int)$r['level'], 'xp' => (int)$r['xp'], 'xpNext' => xp_for_level((int)$r['level']), 'skillPoints' => (int)$r['skill_points'], 'restIn' => max(0, (int)$r['last_rest'] + REST_COOLDOWN - time()),
         ],
+        'presets' => presets_of((int)$r['id']),
         'band' => [
             'name' => $band['name'], 'genre' => $band['genre'], 'chemistry' => round((float)$band['chemistry'], 1),
             'members' => array_map(fn($m) => [

@@ -21,7 +21,7 @@ if (($argv[1] ?? '') === '--remove') {
     foreach ($ids as $uid) {
         $rid = $pdo->query('SELECT id FROM rockstars WHERE user_id = ' . (int)$uid)->fetchColumn();
         if ($rid) $pdo->exec("DELETE FROM bandmates WHERE band_id IN (SELECT id FROM bands WHERE rockstar_id = $rid)");
-        if ($rid) foreach (['bands', 'songs', 'gigs', 'news', 'wardrobe', 'counters', 'achievements', 'daily_goals', 'recruit_log', 'follows'] as $t) {
+        if ($rid) foreach (['bands', 'songs', 'gigs', 'news', 'wardrobe', 'counters', 'achievements', 'daily_goals', 'recruit_log', 'follows', 'look_presets'] as $t) {
             try { $pdo->exec("DELETE FROM $t WHERE " . ($t === 'follows' ? "follower_id = $rid OR followed_id = $rid" : "rockstar_id = $rid")); } catch (PDOException $e) { /* table may not exist on old schemas */ }
         }
         $pdo->exec('DELETE FROM rockstars WHERE user_id = ' . (int)$uid);

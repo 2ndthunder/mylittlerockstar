@@ -199,6 +199,29 @@ test('stage moves need the right venue tier', function () {
     ok(MOVES['pyro']['minTier'] > VENUES['openmic']['tier']);
 });
 
+test('appearance sliders, stance and fit are validated and clamped', function () {
+    $look = random_appearance('guitar', 42);
+    $look['body']['muscle'] = 999; $look['face']['jaw'] = -400; $look['face']['eyeSize'] = 'abc';
+    $look['stance'] = 'moonwalk'; $look['outfit']['bottom']['fit'] = 'baggy'; $look['outfit']['shoes']['fit'] = 'baggy';
+    $clean = clean_appearance($look, [], 0, true);
+    eq($clean['body']['muscle'], 50); eq($clean['face']['jaw'], -50); eq($clean['face']['eyeSize'], 0);
+    eq($clean['stance'], 'wide'); eq($clean['outfit']['bottom']['fit'], 'baggy');
+    ok(!isset($clean['outfit']['shoes']['fit']), 'fit only on clothing');
+    eq(count($clean['body']), count(slider_ids('body')));
+});
+
+test('outfit presets save, validate and delete', function () {
+    $u = new_player('presety'); $r = load_rockstar($u);
+    $look = json_decode($r['appearance'], true);
+    act_save_preset($r, 0, 'Stage night', $look);
+    act_save_preset($r, 0, 'Stage night v2', $look);          // overwrite the same slot
+    $p = presets_of((int)$r['id']); eq(count($p), 1); eq($p[0]['name'], 'Stage night v2');
+    throws(fn() => act_save_preset($r, 99, 'x', $look), 'slot');
+    $look['outfit']['belt'] = ['id' => 'bullet'];               // shop item with a fame lock
+    throws(fn() => act_save_preset($r, 1, 'Cheat', $look), 'fame');
+    act_delete_preset($r, 0); eq(count(presets_of((int)$r['id'])), 0);
+});
+
 /* ================================================================== runner */
 
 foreach ($GLOBALS['tests'] as [$name, $fn]) {

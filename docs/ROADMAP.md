@@ -2,13 +2,16 @@
 
 Where the game goes next, roughly in order. Each item lists where it plugs in.
 
-## Now: characters and the designer
-- Character pass #2 toward `assets/art/style_target.jpg`: fuller bodies, muscle shapes, baggy clothes, round white
-  eyes with small pupils, sharp grins, angular jaws. (`avatar.js`)
-- Body sliders (height, head size, shoulders, chest, waist, hips, arm and leg thickness, muscle) and face sliders
-  (eye size and spacing, brow tilt, nose size, mouth width, jaw width). (`catalog.json` + `looks.php` validation)
-- Per-item fit: skinny, regular, baggy.
-- Designer: face close-up, pose and expression preview, undo and redo, saved outfit presets.
+## Done: character pass #2
+- Organic muscle limbs, body + face sliders, stances, clothing fit, toon eyes / toothy grins / triangle nose,
+  wild spiky hair, belts, fingerless gloves; designer with face close-up, pose + expression preview, undo/redo,
+  saved looks (migration 4, `look_presets`).
+
+## Now: characters, continued
+- Keep closing the gap to `assets/art/style_target.jpg`: dynamic poses (leaning, jumping, kneeling solo), 3/4 body turn.
+- Expressions during play: rock face on a perfect streak, shout on a crowd surf, wince on a miss.
+- More hair (shaggy, side-swept, afro puffs), jackets with popped collars, layered tops, jewellery stacks.
+- Body extras: prosthetics, wheelchair, vitiligo and birthmark patterns, scars anywhere.
 
 ## Next: depth
 - **Tours:** chain venues across cities, with travel cost, fatigue and a tour finale. New `tours` table (migration 4) and an event.

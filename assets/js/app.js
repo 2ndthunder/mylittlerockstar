@@ -63,7 +63,7 @@ function lineup(anim = 'idle', { height = 320 } = {}) {
     const [x, s, z] = slots[i] || [50, 0.7, 0];
     const drums = p.look.instrument?.type === 'drums';
     return `<div class="member ${p.lead ? 'lead' : ''}" style="left:${x}%;--s:${drums ? s * 0.92 : s};z-index:${z};--delay:${(i * 0.13).toFixed(2)}s">
-      ${Avatar.svg({ ...p.look, stageDrums: true }, { anim, title: p.name })}<span class="tag-name">${esc(p.name)}</span></div>`;
+      ${Avatar.svg({ ...p.look, stageDrums: true }, { anim, title: p.name, expression: anim === 'play' ? (i % 2 ? 'sing' : 'rock') : anim === 'cheer' ? 'happy' : '' })}<span class="tag-name">${esc(p.name)}</span></div>`;
   }).join('')}</div>`;
 }
 
@@ -420,7 +420,7 @@ function viewWardrobe(main) {
   const L = Avatar.catalog, owned = new Set(G.state.owned), fame = R().fame;
   const groups = [
     ['hair', 'Hairstyles', L.hair], ['makeup.paint', 'Face paint', L.makeup.paint], ['tattoo', 'Tattoo designs', L.tattoos.designs],
-    ...Object.entries(L.outfit).map(([k, list]) => [`outfit.${k}`, { top: 'Tops', bottom: 'Bottoms', legwear: 'Legwear', shoes: 'Shoes', outer: 'Jackets', hat: 'Hats', glasses: 'Glasses', neck: 'Neckwear', wrist: 'Wristwear' }[k], list]),
+    ...Object.entries(L.outfit).map(([k, list]) => [`outfit.${k}`, { top: 'Tops', bottom: 'Bottoms', legwear: 'Legwear', shoes: 'Shoes', outer: 'Jackets', hat: 'Hats', glasses: 'Glasses', neck: 'Neckwear', wrist: 'Wristwear & gloves', belt: 'Belts' }[k], list]),
     ...Object.entries(L.instruments).filter(([k]) => k !== 'finishes').map(([k, ins]) => [`instrument.${k}`, `${ins.name} models`, ins.models]),
     ['finish', 'Instrument finishes', L.instruments.finishes],
   ];
@@ -448,8 +448,9 @@ function openLookEditor() {
   const o = overlay(`<div class="overlay-page"><div class="row between"><h1>Edit your look</h1><button class="btn ghost" id="closeEd">Close</button></div><div id="edRoot"></div></div>`);
   $('#closeEd', o).addEventListener('click', closeOverlay);
   Creator.open($('#edRoot', o), {
-    mode: 'edit', look: R().appearance, owned: G.state.owned, fame: R().fame, game: G.game,
+    mode: 'edit', look: R().appearance, owned: G.state.owned, fame: R().fame, game: G.game, presets: G.state.presets || [],
     onSubmit: async data => { await api('update_look', data); closeOverlay(); render(); },
+    onPreset: async (op, data) => { const j = await api(op === 'save' ? 'save_preset' : 'delete_preset', data); return j.state?.presets || j.presets || []; },
   });
 }
 
@@ -531,7 +532,7 @@ function viewAuth() {
   main.innerHTML = `<section class="auth">
     <div class="auth-hero" style="background-image:url('${VENUE_ART}garage.jpg')">
       <h1 class="logo">My Little <b>Rockstar</b></h1><p>Raise your rockstar from garage nobody to stadium legend.</p>
-      <div class="hero-band">${demo.map((d, i) => `<div style="--i:${i}">${Avatar.svg(d, { anim: 'play' })}</div>`).join('')}</div>
+      <div class="hero-band">${demo.map((d, i) => `<div style="--i:${i}">${Avatar.svg(d, { anim: 'play', expression: ['rock', 'shout', 'cool'][i % 3] })}</div>`).join('')}</div>
     </div>
     <div class="card auth-card">
       <div class="seg" role="tablist"><button role="tab" aria-selected="true" data-t="login">Log in</button><button role="tab" aria-selected="false" data-t="register">New rockstar</button></div>

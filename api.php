@@ -105,6 +105,8 @@ try {
             out(with_state(['message' => 'Welcome to the garage. Time to get famous.']));
 
         case 'update_look':   out(with_state($tx(fn() => act_update_look(load_rockstar(uid()), (array)($in['appearance'] ?? [])))));
+        case 'save_preset':   out(with_state($tx(fn() => act_save_preset(load_rockstar(uid()), (int)($in['slot'] ?? -1), (string)($in['name'] ?? ''), (array)($in['appearance'] ?? [])))));
+        case 'delete_preset': out(with_state($tx(fn() => act_delete_preset(load_rockstar(uid()), (int)($in['slot'] ?? -1)))));
         case 'update_profile':out(with_state($tx(fn() => act_update_profile(load_rockstar(uid()), $in))));
         case 'buy':           out(with_state($tx(fn() => act_buy(load_rockstar(uid()), (string)($in['group'] ?? ''), (string)($in['id'] ?? '')))));
         case 'rest':          out(with_state($tx(fn() => act_rest(load_rockstar(uid())))));

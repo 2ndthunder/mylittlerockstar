@@ -1,35 +1,74 @@
-// My Little Rockstar — character creator / wardrobe editor.
+// My Little Rockstar — character designer (creator + wardrobe editor).
 // mode 'create': identity + looks + backstory + band.  mode 'edit': looks only, with owned shop items unlocked.
+// Tools: body & face sliders, stances, clothing fit, face close-up, pose + expression preview,
+// undo/redo (buttons or Ctrl+Z / Ctrl+Y), and saved looks (edit mode).
 'use strict';
 
 const Creator = (() => {
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clone = o => JSON.parse(JSON.stringify(o));
 
-  function open(root, { mode = 'create', look, owned = [], fame = 0, game, onSubmit }) {
+  function open(root, { mode = 'create', look, owned = [], fame = 0, game, onSubmit, presets = null, onPreset = null }) {
     const L = Avatar.catalog;
     const ownedSet = new Set(owned);
     const a = clone(look || Avatar.random(L, { instrument: 'guitar' }));
+    // older saves may predate sliders/stances
+    a.body = Object.assign(Object.fromEntries(Avatar.BODY_KEYS.map(k => [k, 0])), a.body || {});
+    Avatar.FACE_KEYS.forEach(k => { a.face[k] ??= 0; });
+    a.stance ??= 'wide';
+    a.outfit.belt ??= { id: 'none' };
     const id = {   // identity + backstory (create mode)
       stageName: '', realName: '', pronouns: 'they/them', pronounsCustom: '', gender: 'unsaid', genderCustom: '', age: 21, hometown: '', bio: '',
       backstory: { origin: 'smalltown', upbringing: 'garage', influence: 'punk', motivation: 'fame', trait: 'wildchild' }, bandName: '', genre: 'punk',
     };
-    let showInstrument = true;
+    let showInstrument = true, view = 'full', pose = 'idle', expression = '';
+    let saved = presets ? clone(presets) : null;
 
     const STEPS = mode === 'create'
-      ? ['Identity', 'Body & face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', 'Backstory', 'Band']
-      : ['Body & face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument'];
+      ? ['Identity', 'Body', 'Face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', 'Backstory', 'Band']
+      : ['Body', 'Face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', ...(saved ? ['Saved looks'] : [])];
     let step = 0;
+
+    /* ---------- undo / redo: snapshot the look after every change (debounced so slider drags are one step) */
+    const history = [JSON.stringify(a)];
+    let hIdx = 0, hTimer = null, restoring = false;
+    const commit = () => {
+      clearTimeout(hTimer);
+      hTimer = setTimeout(() => {
+        const snap = JSON.stringify(a);
+        if (snap === history[hIdx]) return;
+        history.splice(hIdx + 1); history.push(snap);
+        if (history.length > 80) history.shift();
+        hIdx = history.length - 1; syncUndo();
+      }, 350);
+    };
+    const restore = json => { restoring = true; const v = JSON.parse(json); Object.keys(a).forEach(k => delete a[k]); Object.assign(a, v); renderStep(); draw(); restoring = false; syncUndo(); };
+    const undo = () => { clearTimeout(hTimer); if (hIdx > 0) { hIdx--; restore(history[hIdx]); say('Undone'); } };
+    const redo = () => { clearTimeout(hTimer); if (hIdx < history.length - 1) { hIdx++; restore(history[hIdx]); say('Redone'); } };
+    const syncUndo = () => { const u = root.querySelector('[data-act=undo]'), r = root.querySelector('[data-act=redo]'); if (u) u.disabled = hIdx === 0; if (r) r.disabled = hIdx >= history.length - 1; };
+    const say = t => { const l = root.querySelector('.sr-live'); if (l) { l.textContent = ''; setTimeout(() => { l.textContent = t; }, 30); } };
 
     root.innerHTML = `
       <div class="creator">
         <div class="creator-preview card">
+          <div class="preview-tools" role="toolbar" aria-label="Preview">
+            <div class="seg small" role="group" aria-label="View">
+              <button type="button" data-view="full" aria-pressed="true">Full body</button><button type="button" data-view="face" aria-pressed="false">Face close-up</button>
+            </div>
+            <div class="row gap-s"><button type="button" class="btn small ghost" data-act="undo" title="Undo (Ctrl+Z)" aria-label="Undo" disabled>↶ Undo</button>
+              <button type="button" class="btn small ghost" data-act="redo" title="Redo (Ctrl+Y)" aria-label="Redo" disabled>↷ Redo</button></div>
+          </div>
           <div class="preview-stage"></div>
+          <div class="preview-tools">
+            <label class="mini-ctl">Pose <select data-act="pose"><option value="idle">Idle</option><option value="play">Playing</option><option value="cheer">Cheering</option><option value="none">Still</option></select></label>
+            <label class="mini-ctl">Expression <select data-act="expr"><option value="">Their own face</option>${Avatar.EXPRESSIONS.map(x => `<option value="${x}">${x[0].toUpperCase() + x.slice(1)}</option>`).join('')}</select></label>
+          </div>
           <div class="row center wrap">
             <button class="btn small" data-act="rand-step">🎲 Shuffle this step</button>
             <button class="btn small" data-act="rand-all">🎲 Shuffle everything</button>
             <label class="toggle"><input type="checkbox" checked data-act="show-inst"> Show instrument</label>
           </div>
+          <p class="sr-live visually-hidden" aria-live="polite"></p>
         </div>
         <div class="creator-panel card">
           <nav class="steps" aria-label="Creator steps"></nav>
@@ -44,7 +83,10 @@ const Creator = (() => {
     const $ = s => root.querySelector(s);
     const preview = $('.preview-stage'), body = $('.step-body');
 
-    const draw = () => { preview.innerHTML = Avatar.svg({ ...a, showInstrument }, { anim: 'idle', title: 'Your rockstar preview' }); };
+    const draw = () => {
+      preview.innerHTML = Avatar.svg({ ...a, showInstrument }, { anim: view === 'face' ? 'none' : pose, view, expression, title: 'Your rockstar preview' });
+      if (!restoring) commit();
+    };
 
     /* ---------- generic controls */
     const locked = (group, item) => {
@@ -97,6 +139,36 @@ const Creator = (() => {
       box.append(pick);
       return wrap;
     }
+    /** A -50..50 slider with a live value, keyboard friendly, double-click (or the ↺ button) to reset. */
+    function slider(label, obj, key) {
+      const w = document.createElement('div');
+      w.className = 'slider-row';
+      const id = `sl-${key}-${Math.random().toString(36).slice(2, 7)}`;
+      const txt = v => (v === 0 ? 'default' : v > 0 ? `+${v}` : `${v}`);
+      w.innerHTML = `<label for="${id}">${esc(label)}</label>
+        <input id="${id}" type="range" min="-50" max="50" step="1" value="${obj[key] || 0}" aria-valuetext="${txt(obj[key] || 0)}">
+        <output>${txt(obj[key] || 0)}</output><button type="button" class="btn tiny ghost" aria-label="Reset ${esc(label)}" title="Reset">↺</button>`;
+      const inp = w.querySelector('input'), out = w.querySelector('output');
+      const set = v => { obj[key] = v; inp.value = v; out.textContent = txt(v); inp.setAttribute('aria-valuetext', txt(v)); draw(); };
+      inp.addEventListener('input', () => set(+inp.value));
+      inp.addEventListener('dblclick', () => set(0));
+      w.querySelector('button').addEventListener('click', () => set(0));
+      return w;
+    }
+    function sliderGroup(title, group, obj) {
+      const box = document.createElement('fieldset');
+      box.className = 'ctl sliders';
+      box.innerHTML = `<legend>${esc(title)}</legend>`;
+      L.sliders[group].forEach(sd => box.append(slider(sd.name, obj, sd.id)));
+      const row = document.createElement('div');
+      row.className = 'row gap-s';
+      row.innerHTML = `<button type="button" class="btn small ghost">Reset all</button><button type="button" class="btn small ghost">🎲 Randomise</button>`;
+      const [reset, rnd] = row.querySelectorAll('button');
+      reset.addEventListener('click', () => { L.sliders[group].forEach(sd => obj[sd.id] = 0); renderStep(); draw(); });
+      rnd.addEventListener('click', () => { L.sliders[group].forEach(sd => obj[sd.id] = Math.round((Math.random() - 0.5) * 70)); renderStep(); draw(); });
+      box.append(row);
+      return box;
+    }
     function field(label, html) { const w = document.createElement('label'); w.className = 'ctl'; w.innerHTML = `${esc(label)} ${html}`; return w; }
     function heading(t) { const h = document.createElement('h3'); h.textContent = t; return h; }
 
@@ -122,15 +194,20 @@ const Creator = (() => {
         body.append(f);
         body.append(Object.assign(document.createElement('p'), { className: 'muted', textContent: 'Gender and pronouns are just who you are — they never change your stats. Body type, voice and style are all chosen separately.' }));
       },
-      'Body & face'() {
+      'Body'() {
         body.append(heading('Body'));
-        body.append(chips('Build', L.builds, a.build, v => a.build = v));
-        const h = field('Height', `<input type="range" min="0.88" max="1.12" step="0.01" value="${a.height}">`);
-        h.querySelector('input').addEventListener('input', e => { a.height = +e.target.value; draw(); });
+        body.append(chips('Build (a starting point — fine-tune below)', L.builds, a.build, v => a.build = v));
+        body.append(chips('Stance', L.stances, a.stance, v => a.stance = v));
+        const h = field('Height', `<input type="range" min="0.88" max="1.12" step="0.01" value="${a.height}" aria-valuetext="${Math.round(a.height * 100)}%">`);
+        h.querySelector('input').addEventListener('input', e => { a.height = +e.target.value; e.target.setAttribute('aria-valuetext', `${Math.round(a.height * 100)}%`); draw(); });
         body.append(h);
+        body.append(sliderGroup('Proportions', 'body', a.body));
         body.append(colors('Skin tone', L.palettes.skin, a.skin, v => a.skin = v));
+      },
+      'Face'() {
         body.append(heading('Face'));
         body.append(chips('Face shape', L.face.shape, a.face.shape, v => a.face.shape = v));
+        body.append(sliderGroup('Features', 'face', a.face));
         body.append(chips('Eyes', L.face.eyes, a.face.eyes, v => a.face.eyes = v));
         body.append(colors('Eye colour', L.palettes.eyes, a.face.eyeColor, v => a.face.eyeColor = v));
         body.append(chips('Eyebrows', L.face.brows, a.face.brows, v => a.face.brows = v));
@@ -166,6 +243,9 @@ const Creator = (() => {
               if (it.pattern && it.pattern !== 'solid') body.append(colors('Pattern colour', L.palettes.fabric, it.color2, v => it.color2 = v));
             }
             const def = L.outfit[key].find(x => x.id === it.id);
+            if (opts.fit && !['shorts', 'skirt', 'kilt', 'longskirt', 'tutu', 'flares', 'fishnet', 'mesh', 'corset', 'crop'].includes(it.id)) {
+              body.append(chips('Fit', L.fits, it.fit || (it.id === 'cargo' ? 'baggy' : ['skinny', 'leather'].includes(it.id) ? 'skinny' : 'regular'), v => it.fit = v));
+            }
             if (def?.print) {
               const p = field('Shirt print (your band name, a word, anything)', `<input maxlength="12" value="${esc(it.print || '')}" placeholder="e.g. RIOT">`);
               p.querySelector('input').addEventListener('input', e => { it.print = e.target.value; draw(); });
@@ -173,15 +253,47 @@ const Creator = (() => {
             }
           }
         };
-        slot('top', 'Top', { pattern: true });
-        slot('outer', 'Jacket / vest', { pattern: true });
-        slot('bottom', 'Bottoms', { pattern: true });
+        slot('top', 'Top', { pattern: true, fit: true });
+        slot('outer', 'Jacket / vest', { pattern: true, fit: true });
+        slot('bottom', 'Bottoms', { pattern: true, fit: true });
+        slot('belt', 'Belt');
         slot('legwear', 'Legwear');
         slot('shoes', 'Shoes');
         slot('hat', 'Hat', { pattern: true });
         slot('glasses', 'Glasses');
         slot('neck', 'Neck');
-        slot('wrist', 'Wrists');
+        slot('wrist', 'Wrists & gloves');
+      },
+      'Saved looks'() {
+        const max = L.presetsMax || 6;
+        body.append(heading('Saved looks'));
+        body.append(Object.assign(document.createElement('p'), { className: 'muted', textContent: `Save up to ${max} complete looks and switch between them anytime. Loading a look puts it in the preview; press "Save look" to wear it.` }));
+        const list = document.createElement('div');
+        list.className = 'preset-list';
+        for (let i = 0; i < max; i++) {
+          const p = saved.find(x => x.slot === i);
+          const row = document.createElement('div');
+          row.className = 'preset' + (p ? '' : ' empty');
+          row.innerHTML = `<div class="preset-thumb">${p ? Avatar.svg(p.appearance, { anim: 'none', title: p.name }) : '<span aria-hidden="true">＋</span>'}</div>
+            <div class="preset-body"><label class="visually-hidden" for="pn${i}">Name for slot ${i + 1}</label>
+              <input id="pn${i}" maxlength="30" value="${esc(p?.name || '')}" placeholder="Look ${i + 1}">
+              <div class="row gap-s">
+                ${p ? `<button type="button" class="btn small" data-load>Load</button>` : ''}
+                <button type="button" class="btn small ${p ? 'ghost' : 'primary'}" data-save>${p ? 'Overwrite' : 'Save current look here'}</button>
+                ${p ? `<button type="button" class="btn small ghost" data-del aria-label="Delete ${esc(p.name)}">✕</button>` : ''}
+              </div></div>`;
+          const name = () => row.querySelector('input').value.trim() || `Look ${i + 1}`;
+          row.querySelector('[data-load]')?.addEventListener('click', () => { restore(JSON.stringify(Object.assign(clone(a), clone(p.appearance)))); commit(); say(`Loaded ${p.name}`); });
+          row.querySelector('[data-save]').addEventListener('click', async () => {
+            try { saved = await onPreset('save', { slot: i, name: name(), appearance: a }); renderStep(); say(`Saved as ${name()}`); }
+            catch (err) { $('.form-error').textContent = err.message; }
+          });
+          row.querySelector('[data-del]')?.addEventListener('click', async () => {
+            try { saved = await onPreset('delete', { slot: i }); renderStep(); } catch (err) { $('.form-error').textContent = err.message; }
+          });
+          list.append(row);
+        }
+        body.append(list);
       },
       'Ink & piercings'() {
         body.append(heading(`Tattoos (${a.tattoos.length}/${L.tattoos.max})`));
@@ -275,7 +387,15 @@ const Creator = (() => {
       },
     };
 
+    let prevStep = null;
     function renderStep() {
+      // the Face step opens on the close-up; leaving it goes back to full body
+      if (STEPS[step] !== prevStep) {
+        if (STEPS[step] === 'Face') view = 'face'; else if (prevStep === 'Face') view = 'full';
+        prevStep = STEPS[step];
+        root.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
+        if (preview.innerHTML) draw();
+      }
       const nav = $('.steps');
       nav.innerHTML = STEPS.map((s, i) => `<button type="button" class="${i === step ? 'on' : ''}" ${i === step ? 'aria-current="step"' : ''} data-step="${i}">${i + 1}. ${esc(s)}</button>`).join('');
       nav.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { step = +b.dataset.step; renderStep(); }));
@@ -284,15 +404,18 @@ const Creator = (() => {
       steps[STEPS[step]]();
       body.scrollTop = keepScroll;
       $('[data-act=back]').disabled = step === 0;
-      $('[data-act=next]').textContent = step === STEPS.length - 1 ? (mode === 'create' ? 'Start my career 🤘' : 'Save look') : 'Next';
+      $('[data-act=next]').textContent = step === STEPS.length - 1 || (mode === 'edit' && STEPS[step + 1] === 'Saved looks') ? (mode === 'create' ? 'Start my career 🤘' : 'Save look') : 'Next';
       $('.form-error').textContent = '';
     }
 
     root.addEventListener('click', async e => {
       const act = e.target.closest('[data-act]')?.dataset.act;
       if (act === 'back' && step > 0) { step--; renderStep(); body.scrollTop = 0; }
+      if (act === 'undo') return undo();
+      if (act === 'redo') return redo();
       if (act === 'next') {
-        if (step < STEPS.length - 1) { step++; renderStep(); body.scrollTop = 0; return; }
+        const last = step === STEPS.length - 1 || (mode === 'edit' && STEPS[step + 1] === 'Saved looks');
+        if (!last) { step++; renderStep(); body.scrollTop = 0; return; }
         if (mode === 'create' && (!id.stageName.trim() || id.stageName.trim().length < 2)) { step = 0; renderStep(); $('.form-error').textContent = 'Give your rockstar a stage name.'; return; }
         if (mode === 'create' && id.bandName.trim().length < 2) { $('.form-error').textContent = 'Give your band a name.'; return; }
         try { await onSubmit(mode === 'create' ? { ...id, appearance: a } : { appearance: a }); }
@@ -303,7 +426,8 @@ const Creator = (() => {
       }
       if (act === 'rand-step') {
         const r = Avatar.random(L, { instrument: a.instrument.type }), name = STEPS[step];
-        if (name === 'Body & face') { a.build = r.build; a.height = r.height; a.skin = r.skin; a.face = r.face; }
+        if (name === 'Body') { a.build = r.build; a.height = r.height; a.skin = r.skin; a.body = r.body; a.stance = r.stance; }
+        if (name === 'Face') a.face = r.face;
         if (name === 'Hair & makeup') { a.hair = r.hair; a.makeup = r.makeup; }
         if (name === 'Outfit') a.outfit = r.outfit;
         if (name === 'Ink & piercings') { a.tattoos = r.tattoos; a.piercings = r.piercings; }
@@ -312,6 +436,19 @@ const Creator = (() => {
       }
     });
     root.querySelector('[data-act=show-inst]').addEventListener('change', e => { showInstrument = e.target.checked; draw(); });
+    const syncView = () => root.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === view));
+    root.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { view = b.dataset.view; syncView(); draw(); }));
+    root.querySelector('[data-act=pose]').addEventListener('change', e => { pose = e.target.value; if (view === 'face' && pose !== 'none') { view = 'full'; syncView(); } draw(); });
+    root.querySelector('[data-act=expr]').addEventListener('change', e => { expression = e.target.value; draw(); });
+    // keyboard: Ctrl/Cmd+Z undo, Ctrl/Cmd+Shift+Z or Ctrl+Y redo (not while typing in a text box)
+    const onKey = e => {
+      if (!root.isConnected) return document.removeEventListener('keydown', onKey);
+      if (!(e.ctrlKey || e.metaKey) || e.target.matches('input[type=text], input:not([type]), textarea')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); }
+    };
+    document.addEventListener('keydown', onKey);
 
     renderStep(); draw();
   }

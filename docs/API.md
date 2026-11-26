@@ -19,6 +19,8 @@ Auth is a PHP session cookie named `mlr_session`.
 | `state` | — | Full game state for the logged-in player (rockstar, band, songs, gigs, goals, notices). |
 | `create` | `stageName`, `bandName`, `genre`, `backstory{…}`, `appearance{…}`, `gender`, `pronouns`, … | Create your rockstar. |
 | `update_look` | `appearance{…}` | Restyle (only owned/unlocked items). |
+| `save_preset` | `slot` (0–5), `name`, `appearance{…}` | Save a look to a preset slot (validated like a real look). |
+| `delete_preset` | `slot` | Delete a saved look. |
 | `update_profile` | `bio`, `hometown`, `realName`, `pronouns`, … | Edit profile text. |
 | `buy` | `group`, `id` | Buy a wardrobe item. |
 | `rest` | — | Recover energy (cooldown). |
@@ -50,3 +52,13 @@ Auth is a PHP session cookie named `mlr_session`.
 Live play is two calls. `*_start` returns `{ token, chart }`; the client plays the chart (typing or note highway) and
 sends `*_finish` with the token and the result. The server rejects unknown, reused or impossibly fast tokens and clamps
 accuracy to 0–100 and WPM to a sane maximum.
+
+## Appearance
+
+An appearance is JSON validated by `clean_appearance()` in `lib/looks.php` against `assets/data/catalog.json`.
+Beyond item ids and colours it carries:
+
+* `body` — sliders `head, shoulders, chest, waist, hips, arms, legs, muscle`, integers −50…50 (0 = the build's default)
+* `face` — sliders `eyeSize, eyeGap, browTilt, noseSize, mouthWidth, jaw`, −50…50
+* `stance` — `wide` (default), `power` or `relaxed`
+* `outfit.top|outer|bottom.fit` — `skinny`, `regular` or `baggy`

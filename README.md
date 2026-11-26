@@ -27,7 +27,7 @@ On nginx, deny those paths yourself.
 
 | System | What happens |
 |---|---|
-| **Character creator** | 8 steps: identity (any gender incl. non-binary or self-described, any pronouns), body & face, hair & makeup, outfit (patterns, any colour, custom shirt print), tattoos (10 body spots, any ink colour), piercings, instrument (guitar, bass, drums, keytar, vocals, violin + models and finishes), backstory, band. |
+| **Character designer** | 9 steps: identity (any gender incl. non-binary or self-described, any pronouns), body (build, stance, height + 8 proportion sliders: head, shoulders, chest, waist, hips, arms, legs, muscle), face (shape + 6 feature sliders: eye size and spacing, brow tilt, nose, mouth width, jaw; big cartoon eyes, toothy grins), hair & makeup, outfit (skinny/regular/baggy fit, patterns, any colour, custom shirt print, belts, fingerless gloves), tattoos (10 spots), piercings, instrument, backstory, band. Face close-up, pose and expression preview, undo/redo (Ctrl+Z / Ctrl+Y), and up to 6 saved looks. |
 | **Backstory** | Origin, upbringing, influence, motivation and trait set your starting skills and give lasting perks (e.g. *Prove them wrong* = better practice, *Wild child* = risky stage moves land more). Gender and pronouns never affect stats. |
 | **Typing performance** | Lyrics slide toward a glowing line on the beat over a live-generated backing track for the song's genre and tempo. Type each word as it arrives. Timing + accuracy = performance. Difficulty Chill/Normal/Shred, and *call-outs* that speak each word for play-by-ear. |
 | **Practice** | Typing drills that raise one of six skills: musicianship, vocals, songwriting, stage presence, charisma, stamina. |
@@ -54,9 +54,9 @@ Every setting in `config.php` can be overridden with an environment variable nam
 ## Art
 
 * **Venues and stages:** painted by Gemini (`assets/art/`; full-size originals in `raw/`).
-* **Characters:** a layered 2.5D SVG renderer (`assets/js/avatar.js`) styled after Gemini's character sheet
-  (`assets/art/character_style_sheet.jpg`): big heads (about a third of total height), thick outlines, flat cel colours,
-  heavy-lidded eyes, chunky boots. Every part is drawn separately, so any combination works and recolours freely.
+* **Characters:** a layered 2.5D SVG renderer (`assets/js/avatar.js`): big heads, bold near-black outlines, flat cel
+  colours, organic limbs with muscle shapes (bicep, forearm, thigh, calf), rock stances, and clothes that hang skinny,
+  regular or baggy. Every part is drawn separately, so any combination works and recolours freely.
 * **Style target:** `assets/art/style_target.jpg` is where the character art is heading: thick outlines, flat bold
   colour, big angular faces with round white eyes, sharp grins, spiky hair, baggy clothes.
 * `avatar_gallery.html` is a dev page that shows 12 random rockstars; refresh it for new ones.

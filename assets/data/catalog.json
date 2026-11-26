@@ -1,1278 +1,1438 @@
 {
-  "_note": "Single source of truth for everything a rockstar can look like. Read by PHP (validation, shop, NPC bandmates) and JS (rendering, creator). price = cash cost (0 = free), fame = fame points needed to unlock.",
-  "palettes": {
-    "skin": [
-      "#fde3d0",
-      "#f6cfb2",
-      "#eab48f",
-      "#d99b6c",
-      "#c4834f",
-      "#a8693d",
-      "#8d5530",
-      "#6f4024",
-      "#55301b",
-      "#3d2214",
-      "#b9d7c4",
-      "#c9b7e8"
-    ],
-    "hair": [
-      "#16120f",
-      "#3a2418",
-      "#6b3e22",
-      "#a0602e",
-      "#d8a35a",
-      "#f1dc9b",
-      "#e9e6e1",
-      "#8f8f96",
-      "#c0262d",
-      "#ff4d8b",
-      "#a64dff",
-      "#3d6bff",
-      "#19c2c9",
-      "#2ecc71",
-      "#ffd23f",
-      "#ff7a1a"
-    ],
-    "eyes": [
-      "#3b2414",
-      "#6b4423",
-      "#2f6f3e",
-      "#3b74b8",
-      "#7a8a99",
-      "#9a7b2f",
-      "#7b3fa0",
-      "#c0262d"
-    ],
-    "fabric": [
-      "#121216",
-      "#f2f2f2",
-      "#7a7a85",
-      "#b3121f",
-      "#ff3b6b",
-      "#7d3cff",
-      "#2453ff",
-      "#13a8c4",
-      "#1f8f4e",
-      "#ffcc1a",
-      "#ff7a1a",
-      "#5a3b26",
-      "#c9a77c",
-      "#1d2a4d",
-      "#4b0d1f",
-      "#c0c5cc"
-    ],
-    "ink": [
-      "#1b2236",
-      "#0d0d0d",
-      "#b3121f",
-      "#1f8f4e",
-      "#2453ff",
-      "#7d3cff",
-      "#ff7a1a",
-      "#ffffff"
-    ],
-    "lips": [
-      "#b04a5a",
-      "#7a1d2c",
-      "#121216",
-      "#c0262d",
-      "#ff4d8b",
-      "#7d3cff",
-      "#2453ff",
-      "#d68a7a"
-    ]
-  },
-  "builds": [
-    {
-      "id": "slim",
-      "name": "Slim"
-    },
-    {
-      "id": "average",
-      "name": "Average"
-    },
-    {
-      "id": "athletic",
-      "name": "Athletic"
-    },
-    {
-      "id": "curvy",
-      "name": "Curvy"
-    },
-    {
-      "id": "broad",
-      "name": "Broad"
-    },
-    {
-      "id": "heavy",
-      "name": "Heavy"
-    }
+ "_note": "Single source of truth for everything a rockstar can look like. Read by PHP (validation, shop, NPC bandmates) and JS (rendering, creator). price = cash cost (0 = free), fame = fame points needed to unlock.",
+ "palettes": {
+  "skin": [
+   "#fde3d0",
+   "#f6cfb2",
+   "#eab48f",
+   "#d99b6c",
+   "#c4834f",
+   "#a8693d",
+   "#8d5530",
+   "#6f4024",
+   "#55301b",
+   "#3d2214",
+   "#b9d7c4",
+   "#c9b7e8"
   ],
-  "face": {
-    "shape": [
-      {
-        "id": "round",
-        "name": "Round"
-      },
-      {
-        "id": "oval",
-        "name": "Oval"
-      },
-      {
-        "id": "square",
-        "name": "Square"
-      },
-      {
-        "id": "heart",
-        "name": "Heart"
-      },
-      {
-        "id": "long",
-        "name": "Long"
-      }
-    ],
-    "eyes": [
-      {
-        "id": "round",
-        "name": "Round"
-      },
-      {
-        "id": "almond",
-        "name": "Almond"
-      },
-      {
-        "id": "sleepy",
-        "name": "Sleepy"
-      },
-      {
-        "id": "sharp",
-        "name": "Sharp"
-      },
-      {
-        "id": "wide",
-        "name": "Wide"
-      },
-      {
-        "id": "happy",
-        "name": "Closed smile"
-      }
-    ],
-    "brows": [
-      {
-        "id": "soft",
-        "name": "Soft"
-      },
-      {
-        "id": "thick",
-        "name": "Thick"
-      },
-      {
-        "id": "arched",
-        "name": "Arched"
-      },
-      {
-        "id": "angry",
-        "name": "Fierce"
-      },
-      {
-        "id": "thin",
-        "name": "Thin"
-      },
-      {
-        "id": "none",
-        "name": "None"
-      }
-    ],
-    "nose": [
-      {
-        "id": "button",
-        "name": "Button"
-      },
-      {
-        "id": "straight",
-        "name": "Straight"
-      },
-      {
-        "id": "wide",
-        "name": "Wide"
-      },
-      {
-        "id": "pointed",
-        "name": "Pointed"
-      },
-      {
-        "id": "small",
-        "name": "Small"
-      }
-    ],
-    "mouth": [
-      {
-        "id": "smile",
-        "name": "Smile"
-      },
-      {
-        "id": "smirk",
-        "name": "Smirk"
-      },
-      {
-        "id": "grin",
-        "name": "Grin"
-      },
-      {
-        "id": "neutral",
-        "name": "Neutral"
-      },
-      {
-        "id": "sing",
-        "name": "Singing"
-      },
-      {
-        "id": "snarl",
-        "name": "Snarl"
-      }
-    ],
-    "marks": [
-      {
-        "id": "none",
-        "name": "None"
-      },
-      {
-        "id": "freckles",
-        "name": "Freckles"
-      },
-      {
-        "id": "mole",
-        "name": "Beauty mark"
-      },
-      {
-        "id": "scar",
-        "name": "Scar"
-      },
-      {
-        "id": "blush",
-        "name": "Rosy cheeks"
-      }
-    ]
-  },
-  "makeup": {
-    "paint": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "star",
-        "name": "Star eye",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "bolt",
-        "name": "Lightning bolt",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "tears",
-        "name": "Black tears",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "glitter",
-        "name": "Glitter",
-        "price": 40,
-        "fame": 0
-      },
-      {
-        "id": "corpse",
-        "name": "Corpse paint",
-        "price": 60,
-        "fame": 100
-      },
-      {
-        "id": "halfmask",
-        "name": "Half mask",
-        "price": 80,
-        "fame": 500
-      }
-    ]
-  },
   "hair": [
-    {
-      "id": "bald",
-      "name": "Shaved",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "buzz",
-      "name": "Buzz cut",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "messy",
-      "name": "Messy short",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "pompadour",
-      "name": "Pompadour",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "mohawk",
-      "name": "Mohawk",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "undercut",
-      "name": "Side undercut",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "mullet",
-      "name": "Mullet",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "emo",
-      "name": "Emo fringe",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "bob",
-      "name": "Bob",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "long",
-      "name": "Long straight",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "wavy",
-      "name": "Long waves",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "curly",
-      "name": "Big curls",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "locs",
-      "name": "Locs",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "pigtails",
-      "name": "Pigtails",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "bun",
-      "name": "Top bun",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "braids",
-      "name": "Twin braids",
-      "price": 0,
-      "fame": 0
-    },
-    {
-      "id": "liberty",
-      "name": "Liberty spikes",
-      "price": 120,
-      "fame": 100
-    },
-    {
-      "id": "hairmetal",
-      "name": "Arena volume",
-      "price": 150,
-      "fame": 500
-    }
+   "#16120f",
+   "#3a2418",
+   "#6b3e22",
+   "#a0602e",
+   "#d8a35a",
+   "#f1dc9b",
+   "#e9e6e1",
+   "#8f8f96",
+   "#c0262d",
+   "#ff4d8b",
+   "#a64dff",
+   "#3d6bff",
+   "#19c2c9",
+   "#2ecc71",
+   "#ffd23f",
+   "#ff7a1a"
   ],
-  "facialHair": [
-    {
-      "id": "none",
-      "name": "None"
-    },
-    {
-      "id": "stubble",
-      "name": "Stubble"
-    },
-    {
-      "id": "mustache",
-      "name": "Mustache"
-    },
-    {
-      "id": "goatee",
-      "name": "Goatee"
-    },
-    {
-      "id": "beard",
-      "name": "Full beard"
-    },
-    {
-      "id": "sideburns",
-      "name": "Sideburns"
-    },
-    {
-      "id": "soulpatch",
-      "name": "Soul patch"
-    }
+  "eyes": [
+   "#3b2414",
+   "#6b4423",
+   "#2f6f3e",
+   "#3b74b8",
+   "#7a8a99",
+   "#9a7b2f",
+   "#7b3fa0",
+   "#c0262d"
   ],
-  "patterns": [
-    {
-      "id": "solid",
-      "name": "Solid"
-    },
-    {
-      "id": "stripes",
-      "name": "Stripes"
-    },
-    {
-      "id": "plaid",
-      "name": "Plaid"
-    },
-    {
-      "id": "leopard",
-      "name": "Leopard"
-    },
-    {
-      "id": "checker",
-      "name": "Checker"
-    },
-    {
-      "id": "polka",
-      "name": "Polka dots"
-    },
-    {
-      "id": "splatter",
-      "name": "Paint splatter"
-    },
-    {
-      "id": "stars",
-      "name": "Stars"
-    }
+  "fabric": [
+   "#121216",
+   "#f2f2f2",
+   "#7a7a85",
+   "#b3121f",
+   "#ff3b6b",
+   "#7d3cff",
+   "#2453ff",
+   "#13a8c4",
+   "#1f8f4e",
+   "#ffcc1a",
+   "#ff7a1a",
+   "#5a3b26",
+   "#c9a77c",
+   "#1d2a4d",
+   "#4b0d1f",
+   "#c0c5cc"
   ],
-  "outfit": {
-    "top": [
-      {
-        "id": "tee",
-        "name": "Band tee",
-        "sleeve": "short",
-        "price": 0,
-        "fame": 0,
-        "print": true
-      },
-      {
-        "id": "ripped",
-        "name": "Ripped tee",
-        "sleeve": "short",
-        "price": 0,
-        "fame": 0,
-        "print": true
-      },
-      {
-        "id": "tank",
-        "name": "Tank top",
-        "sleeve": "none",
-        "price": 0,
-        "fame": 0,
-        "print": true
-      },
-      {
-        "id": "crop",
-        "name": "Crop top",
-        "sleeve": "short",
-        "price": 0,
-        "fame": 0,
-        "crop": true
-      },
-      {
-        "id": "longsleeve",
-        "name": "Long sleeve",
-        "sleeve": "long",
-        "price": 0,
-        "fame": 0,
-        "print": true
-      },
-      {
-        "id": "buttonup",
-        "name": "Open shirt",
-        "sleeve": "long",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "hoodie",
-        "name": "Hoodie",
-        "sleeve": "long",
-        "price": 0,
-        "fame": 0,
-        "print": true
-      },
-      {
-        "id": "turtleneck",
-        "name": "Turtleneck",
-        "sleeve": "long",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "none",
-        "name": "Shirtless",
-        "sleeve": "none",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "fishnet",
-        "name": "Fishnet top",
-        "sleeve": "long",
-        "price": 35,
-        "fame": 0,
-        "sheer": true
-      },
-      {
-        "id": "mesh",
-        "name": "Mesh tank",
-        "sleeve": "none",
-        "price": 35,
-        "fame": 0,
-        "sheer": true
-      },
-      {
-        "id": "corset",
-        "name": "Corset",
-        "sleeve": "none",
-        "price": 90,
-        "fame": 100
-      },
-      {
-        "id": "sequin",
-        "name": "Sequin top",
-        "sleeve": "short",
-        "price": 140,
-        "fame": 500
-      }
-    ],
-    "bottom": [
-      {
-        "id": "skinny",
-        "name": "Skinny jeans",
-        "price": 0,
-        "fame": 0,
-        "cover": "full"
-      },
-      {
-        "id": "ripped",
-        "name": "Ripped jeans",
-        "price": 0,
-        "fame": 0,
-        "cover": "full"
-      },
-      {
-        "id": "cargo",
-        "name": "Cargo pants",
-        "price": 0,
-        "fame": 0,
-        "cover": "full"
-      },
-      {
-        "id": "shorts",
-        "name": "Cut-off shorts",
-        "price": 0,
-        "fame": 0,
-        "cover": "short"
-      },
-      {
-        "id": "skirt",
-        "name": "Mini skirt",
-        "price": 0,
-        "fame": 0,
-        "cover": "skirt"
-      },
-      {
-        "id": "kilt",
-        "name": "Kilt",
-        "price": 0,
-        "fame": 0,
-        "cover": "skirt"
-      },
-      {
-        "id": "longskirt",
-        "name": "Long skirt",
-        "price": 0,
-        "fame": 0,
-        "cover": "long"
-      },
-      {
-        "id": "leather",
-        "name": "Leather pants",
-        "price": 60,
-        "fame": 0,
-        "cover": "full"
-      },
-      {
-        "id": "flares",
-        "name": "Bell-bottoms",
-        "price": 60,
-        "fame": 100,
-        "cover": "full"
-      },
-      {
-        "id": "tutu",
-        "name": "Punk tutu",
-        "price": 70,
-        "fame": 100,
-        "cover": "skirt"
-      }
-    ],
-    "legwear": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "tights",
-        "name": "Tights",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "fishnets",
-        "name": "Fishnets",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "striped",
-        "name": "Striped socks",
-        "price": 0,
-        "fame": 0
-      }
-    ],
-    "shoes": [
-      {
-        "id": "boots",
-        "name": "Combat boots",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "hightops",
-        "name": "High-tops",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "sneakers",
-        "name": "Sneakers",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "barefoot",
-        "name": "Barefoot",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "cowboy",
-        "name": "Cowboy boots",
-        "price": 50,
-        "fame": 0
-      },
-      {
-        "id": "creepers",
-        "name": "Creepers",
-        "price": 50,
-        "fame": 0
-      },
-      {
-        "id": "platforms",
-        "name": "Platform boots",
-        "price": 120,
-        "fame": 500
-      }
-    ],
-    "outer": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "leather",
-        "name": "Biker jacket",
-        "price": 0,
-        "fame": 0,
-        "sleeve": "long"
-      },
-      {
-        "id": "denimvest",
-        "name": "Battle vest",
-        "price": 0,
-        "fame": 0,
-        "sleeve": "none"
-      },
-      {
-        "id": "bomber",
-        "name": "Bomber jacket",
-        "price": 40,
-        "fame": 0,
-        "sleeve": "long"
-      },
-      {
-        "id": "studvest",
-        "name": "Studded vest",
-        "price": 70,
-        "fame": 100,
-        "sleeve": "none"
-      },
-      {
-        "id": "trench",
-        "name": "Long coat",
-        "price": 90,
-        "fame": 100,
-        "sleeve": "long"
-      },
-      {
-        "id": "blazer",
-        "name": "Glam blazer",
-        "price": 160,
-        "fame": 500,
-        "sleeve": "long"
-      },
-      {
-        "id": "furcoat",
-        "name": "Faux-fur coat",
-        "price": 400,
-        "fame": 2000,
-        "sleeve": "long"
-      }
-    ],
-    "hat": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "beanie",
-        "name": "Beanie",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "bandana",
-        "name": "Bandana",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "cap",
-        "name": "Backwards cap",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "cowboy",
-        "name": "Cowboy hat",
-        "price": 50,
-        "fame": 0
-      },
-      {
-        "id": "fedora",
-        "name": "Fedora",
-        "price": 50,
-        "fame": 0
-      },
-      {
-        "id": "tophat",
-        "name": "Top hat",
-        "price": 90,
-        "fame": 500
-      },
-      {
-        "id": "crown",
-        "name": "Crown",
-        "price": 1000,
-        "fame": 25000
-      }
-    ],
-    "glasses": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "round",
-        "name": "Round shades",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "aviators",
-        "name": "Aviators",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "eyepatch",
-        "name": "Eyepatch",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "heart",
-        "name": "Heart shades",
-        "price": 40,
-        "fame": 0
-      },
-      {
-        "id": "star",
-        "name": "Star shades",
-        "price": 80,
-        "fame": 100
-      },
-      {
-        "id": "visor",
-        "name": "Cyber visor",
-        "price": 150,
-        "fame": 2000
-      }
-    ],
-    "neck": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "chain",
-        "name": "Chain",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "choker",
-        "name": "Spiked choker",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "bandana",
-        "name": "Neck bandana",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "scarf",
-        "name": "Long scarf",
-        "price": 30,
-        "fame": 0
-      },
-      {
-        "id": "pendant",
-        "name": "Pick pendant",
-        "price": 30,
-        "fame": 0
-      },
-      {
-        "id": "bowtie",
-        "name": "Bow tie",
-        "price": 30,
-        "fame": 100
-      }
-    ],
-    "wrist": [
-      {
-        "id": "none",
-        "name": "None",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "spiked",
-        "name": "Spiked cuffs",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "sweatband",
-        "name": "Sweatbands",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "bracelets",
-        "name": "Bracelets",
-        "price": 0,
-        "fame": 0
-      }
-    ]
+  "ink": [
+   "#1b2236",
+   "#0d0d0d",
+   "#b3121f",
+   "#1f8f4e",
+   "#2453ff",
+   "#7d3cff",
+   "#ff7a1a",
+   "#ffffff"
+  ],
+  "lips": [
+   "#b04a5a",
+   "#7a1d2c",
+   "#121216",
+   "#c0262d",
+   "#ff4d8b",
+   "#7d3cff",
+   "#2453ff",
+   "#d68a7a"
+  ]
+ },
+ "builds": [
+  {
+   "id": "slim",
+   "name": "Slim"
   },
-  "piercings": [
-    {
-      "id": "ear",
-      "name": "Ear hoops"
-    },
-    {
-      "id": "gauge",
-      "name": "Ear gauge"
-    },
-    {
-      "id": "nose",
-      "name": "Nose stud"
-    },
-    {
-      "id": "septum",
-      "name": "Septum ring"
-    },
-    {
-      "id": "brow",
-      "name": "Eyebrow bar"
-    },
-    {
-      "id": "lip",
-      "name": "Lip ring"
-    }
-  ],
-  "tattoos": {
-    "slots": [
-      {
-        "id": "armL_upper",
-        "name": "Left upper arm"
-      },
-      {
-        "id": "armL_lower",
-        "name": "Left forearm"
-      },
-      {
-        "id": "armR_upper",
-        "name": "Right upper arm"
-      },
-      {
-        "id": "armR_lower",
-        "name": "Right forearm"
-      },
-      {
-        "id": "neck",
-        "name": "Neck"
-      },
-      {
-        "id": "chest",
-        "name": "Chest"
-      },
-      {
-        "id": "cheek",
-        "name": "Face"
-      },
-      {
-        "id": "hands",
-        "name": "Hands"
-      },
-      {
-        "id": "legL",
-        "name": "Left leg"
-      },
-      {
-        "id": "legR",
-        "name": "Right leg"
-      }
-    ],
-    "designs": [
-      {
-        "id": "rose",
-        "name": "Rose",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "skull",
-        "name": "Skull",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "star",
-        "name": "Star",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "heart",
-        "name": "Heart",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "dagger",
-        "name": "Dagger",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "bolt",
-        "name": "Lightning",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "note",
-        "name": "Music note",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "flame",
-        "name": "Flames",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "swallow",
-        "name": "Swallow",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "tribal",
-        "name": "Tribal band",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "web",
-        "name": "Spiderweb",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "sleeve",
-        "name": "Full sleeve",
-        "price": 150,
-        "fame": 100
-      },
-      {
-        "id": "snake",
-        "name": "Snake",
-        "price": 80,
-        "fame": 100
-      },
-      {
-        "id": "wings",
-        "name": "Wings",
-        "price": 120,
-        "fame": 500
-      }
-    ],
-    "max": 8
+  {
+   "id": "average",
+   "name": "Average"
   },
-  "instruments": {
-    "guitar": {
-      "name": "Guitar",
-      "role": "Lead guitar",
-      "models": [
-        {
-          "id": "classic",
-          "name": "Classic double-cut",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "singlecut",
-          "name": "Single-cut",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "acoustic",
-          "name": "Acoustic",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "vee",
-          "name": "Arrowhead V",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "hollow",
-          "name": "Hollowbody",
-          "price": 150,
-          "fame": 100
-        },
-        {
-          "id": "star",
-          "name": "Star body",
-          "price": 300,
-          "fame": 2000
-        }
-      ]
-    },
-    "bass": {
-      "name": "Bass",
-      "role": "Bass",
-      "models": [
-        {
-          "id": "classic",
-          "name": "Offset bass",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "pshape",
-          "name": "Round bass",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "fivestring",
-          "name": "Five-string",
-          "price": 200,
-          "fame": 500
-        }
-      ]
-    },
-    "drums": {
-      "name": "Drums",
-      "role": "Drums",
-      "models": [
-        {
-          "id": "classic",
-          "name": "Wood sticks",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "glow",
-          "name": "Glow sticks",
-          "price": 120,
-          "fame": 500
-        }
-      ]
-    },
-    "keys": {
-      "name": "Keytar",
-      "role": "Keys",
-      "models": [
-        {
-          "id": "classic",
-          "name": "Keytar",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "retro",
-          "name": "Retro synth keytar",
-          "price": 180,
-          "fame": 500
-        }
-      ]
-    },
-    "vocals": {
-      "name": "Microphone",
-      "role": "Vocals",
-      "models": [
-        {
-          "id": "handheld",
-          "name": "Handheld mic",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "vintage",
-          "name": "Vintage mic",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "stand",
-          "name": "Mic stand",
-          "price": 0,
-          "fame": 0
-        }
-      ]
-    },
-    "violin": {
-      "name": "Violin",
-      "role": "Strings",
-      "models": [
-        {
-          "id": "classic",
-          "name": "Violin",
-          "price": 0,
-          "fame": 0
-        },
-        {
-          "id": "electric",
-          "name": "Electric violin",
-          "price": 220,
-          "fame": 500
-        }
-      ]
-    },
-    "finishes": [
-      {
-        "id": "gloss",
-        "name": "Gloss",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "matte",
-        "name": "Matte",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "sunburst",
-        "name": "Sunburst",
-        "price": 0,
-        "fame": 0
-      },
-      {
-        "id": "sparkle",
-        "name": "Sparkle",
-        "price": 100,
-        "fame": 100
-      },
-      {
-        "id": "chrome",
-        "name": "Chrome",
-        "price": 250,
-        "fame": 2000
-      }
-    ]
+  {
+   "id": "athletic",
+   "name": "Athletic"
+  },
+  {
+   "id": "curvy",
+   "name": "Curvy"
+  },
+  {
+   "id": "broad",
+   "name": "Broad"
+  },
+  {
+   "id": "heavy",
+   "name": "Heavy"
   }
+ ],
+ "face": {
+  "shape": [
+   {
+    "id": "round",
+    "name": "Round"
+   },
+   {
+    "id": "oval",
+    "name": "Oval"
+   },
+   {
+    "id": "square",
+    "name": "Square"
+   },
+   {
+    "id": "heart",
+    "name": "Heart"
+   },
+   {
+    "id": "long",
+    "name": "Long"
+   },
+   {
+    "id": "pointed",
+    "name": "Pointed chin"
+   },
+   {
+    "id": "wide",
+    "name": "Wide"
+   }
+  ],
+  "eyes": [
+   {
+    "id": "round",
+    "name": "Round"
+   },
+   {
+    "id": "almond",
+    "name": "Almond"
+   },
+   {
+    "id": "sleepy",
+    "name": "Sleepy"
+   },
+   {
+    "id": "sharp",
+    "name": "Sharp"
+   },
+   {
+    "id": "wide",
+    "name": "Wide"
+   },
+   {
+    "id": "happy",
+    "name": "Closed smile"
+   },
+   {
+    "id": "toon",
+    "name": "Big toon"
+   },
+   {
+    "id": "toonlid",
+    "name": "Toon, half-lid"
+   },
+   {
+    "id": "dot",
+    "name": "Dots"
+   }
+  ],
+  "brows": [
+   {
+    "id": "soft",
+    "name": "Soft"
+   },
+   {
+    "id": "thick",
+    "name": "Thick"
+   },
+   {
+    "id": "arched",
+    "name": "Arched"
+   },
+   {
+    "id": "angry",
+    "name": "Fierce"
+   },
+   {
+    "id": "thin",
+    "name": "Thin"
+   },
+   {
+    "id": "slab",
+    "name": "Chunky"
+   },
+   {
+    "id": "none",
+    "name": "None"
+   }
+  ],
+  "nose": [
+   {
+    "id": "button",
+    "name": "Button"
+   },
+   {
+    "id": "straight",
+    "name": "Straight"
+   },
+   {
+    "id": "wide",
+    "name": "Wide"
+   },
+   {
+    "id": "pointed",
+    "name": "Pointed"
+   },
+   {
+    "id": "small",
+    "name": "Small"
+   },
+   {
+    "id": "triangle",
+    "name": "Triangle"
+   }
+  ],
+  "mouth": [
+   {
+    "id": "smile",
+    "name": "Smile"
+   },
+   {
+    "id": "smirk",
+    "name": "Smirk"
+   },
+   {
+    "id": "grin",
+    "name": "Grin"
+   },
+   {
+    "id": "neutral",
+    "name": "Neutral"
+   },
+   {
+    "id": "sing",
+    "name": "Singing"
+   },
+   {
+    "id": "snarl",
+    "name": "Snarl"
+   },
+   {
+    "id": "fangs",
+    "name": "Toothy grin"
+   },
+   {
+    "id": "shout",
+    "name": "Shout"
+   }
+  ],
+  "marks": [
+   {
+    "id": "none",
+    "name": "None"
+   },
+   {
+    "id": "freckles",
+    "name": "Freckles"
+   },
+   {
+    "id": "mole",
+    "name": "Beauty mark"
+   },
+   {
+    "id": "scar",
+    "name": "Scar"
+   },
+   {
+    "id": "blush",
+    "name": "Rosy cheeks"
+   }
+  ]
+ },
+ "makeup": {
+  "paint": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "star",
+    "name": "Star eye",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "bolt",
+    "name": "Lightning bolt",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "tears",
+    "name": "Black tears",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "glitter",
+    "name": "Glitter",
+    "price": 40,
+    "fame": 0
+   },
+   {
+    "id": "corpse",
+    "name": "Corpse paint",
+    "price": 60,
+    "fame": 100
+   },
+   {
+    "id": "halfmask",
+    "name": "Half mask",
+    "price": 80,
+    "fame": 500
+   }
+  ]
+ },
+ "hair": [
+  {
+   "id": "bald",
+   "name": "Shaved",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "buzz",
+   "name": "Buzz cut",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "messy",
+   "name": "Messy short",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "pompadour",
+   "name": "Pompadour",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "mohawk",
+   "name": "Mohawk",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "undercut",
+   "name": "Side undercut",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "mullet",
+   "name": "Mullet",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "emo",
+   "name": "Emo fringe",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "bob",
+   "name": "Bob",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "long",
+   "name": "Long straight",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "wavy",
+   "name": "Long waves",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "curly",
+   "name": "Big curls",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "locs",
+   "name": "Locs",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "pigtails",
+   "name": "Pigtails",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "bun",
+   "name": "Top bun",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "braids",
+   "name": "Twin braids",
+   "price": 0,
+   "fame": 0
+  },
+  {
+   "id": "liberty",
+   "name": "Liberty spikes",
+   "price": 120,
+   "fame": 100
+  },
+  {
+   "id": "hairmetal",
+   "name": "Arena volume",
+   "price": 150,
+   "fame": 500
+  },
+  {
+   "id": "spiky",
+   "name": "Wild spikes"
+  }
+ ],
+ "facialHair": [
+  {
+   "id": "none",
+   "name": "None"
+  },
+  {
+   "id": "stubble",
+   "name": "Stubble"
+  },
+  {
+   "id": "mustache",
+   "name": "Mustache"
+  },
+  {
+   "id": "goatee",
+   "name": "Goatee"
+  },
+  {
+   "id": "beard",
+   "name": "Full beard"
+  },
+  {
+   "id": "sideburns",
+   "name": "Sideburns"
+  },
+  {
+   "id": "soulpatch",
+   "name": "Soul patch"
+  }
+ ],
+ "patterns": [
+  {
+   "id": "solid",
+   "name": "Solid"
+  },
+  {
+   "id": "stripes",
+   "name": "Stripes"
+  },
+  {
+   "id": "plaid",
+   "name": "Plaid"
+  },
+  {
+   "id": "leopard",
+   "name": "Leopard"
+  },
+  {
+   "id": "checker",
+   "name": "Checker"
+  },
+  {
+   "id": "polka",
+   "name": "Polka dots"
+  },
+  {
+   "id": "splatter",
+   "name": "Paint splatter"
+  },
+  {
+   "id": "stars",
+   "name": "Stars"
+  }
+ ],
+ "outfit": {
+  "top": [
+   {
+    "id": "tee",
+    "name": "Band tee",
+    "sleeve": "short",
+    "price": 0,
+    "fame": 0,
+    "print": true
+   },
+   {
+    "id": "ripped",
+    "name": "Ripped tee",
+    "sleeve": "short",
+    "price": 0,
+    "fame": 0,
+    "print": true
+   },
+   {
+    "id": "tank",
+    "name": "Tank top",
+    "sleeve": "none",
+    "price": 0,
+    "fame": 0,
+    "print": true
+   },
+   {
+    "id": "crop",
+    "name": "Crop top",
+    "sleeve": "short",
+    "price": 0,
+    "fame": 0,
+    "crop": true
+   },
+   {
+    "id": "longsleeve",
+    "name": "Long sleeve",
+    "sleeve": "long",
+    "price": 0,
+    "fame": 0,
+    "print": true
+   },
+   {
+    "id": "buttonup",
+    "name": "Open shirt",
+    "sleeve": "long",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "hoodie",
+    "name": "Hoodie",
+    "sleeve": "long",
+    "price": 0,
+    "fame": 0,
+    "print": true
+   },
+   {
+    "id": "turtleneck",
+    "name": "Turtleneck",
+    "sleeve": "long",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "none",
+    "name": "Shirtless",
+    "sleeve": "none",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "fishnet",
+    "name": "Fishnet top",
+    "sleeve": "long",
+    "price": 35,
+    "fame": 0,
+    "sheer": true
+   },
+   {
+    "id": "mesh",
+    "name": "Mesh tank",
+    "sleeve": "none",
+    "price": 35,
+    "fame": 0,
+    "sheer": true
+   },
+   {
+    "id": "corset",
+    "name": "Corset",
+    "sleeve": "none",
+    "price": 90,
+    "fame": 100
+   },
+   {
+    "id": "sequin",
+    "name": "Sequin top",
+    "sleeve": "short",
+    "price": 140,
+    "fame": 500
+   }
+  ],
+  "bottom": [
+   {
+    "id": "skinny",
+    "name": "Skinny jeans",
+    "price": 0,
+    "fame": 0,
+    "cover": "full"
+   },
+   {
+    "id": "ripped",
+    "name": "Ripped jeans",
+    "price": 0,
+    "fame": 0,
+    "cover": "full"
+   },
+   {
+    "id": "cargo",
+    "name": "Cargo pants",
+    "price": 0,
+    "fame": 0,
+    "cover": "full"
+   },
+   {
+    "id": "shorts",
+    "name": "Cut-off shorts",
+    "price": 0,
+    "fame": 0,
+    "cover": "short"
+   },
+   {
+    "id": "skirt",
+    "name": "Mini skirt",
+    "price": 0,
+    "fame": 0,
+    "cover": "skirt"
+   },
+   {
+    "id": "kilt",
+    "name": "Kilt",
+    "price": 0,
+    "fame": 0,
+    "cover": "skirt"
+   },
+   {
+    "id": "longskirt",
+    "name": "Long skirt",
+    "price": 0,
+    "fame": 0,
+    "cover": "long"
+   },
+   {
+    "id": "leather",
+    "name": "Leather pants",
+    "price": 60,
+    "fame": 0,
+    "cover": "full"
+   },
+   {
+    "id": "flares",
+    "name": "Bell-bottoms",
+    "price": 60,
+    "fame": 100,
+    "cover": "full"
+   },
+   {
+    "id": "tutu",
+    "name": "Punk tutu",
+    "price": 70,
+    "fame": 100,
+    "cover": "skirt"
+   }
+  ],
+  "legwear": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "tights",
+    "name": "Tights",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "fishnets",
+    "name": "Fishnets",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "striped",
+    "name": "Striped socks",
+    "price": 0,
+    "fame": 0
+   }
+  ],
+  "shoes": [
+   {
+    "id": "boots",
+    "name": "Combat boots",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "hightops",
+    "name": "High-tops",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "sneakers",
+    "name": "Sneakers",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "barefoot",
+    "name": "Barefoot",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "cowboy",
+    "name": "Cowboy boots",
+    "price": 50,
+    "fame": 0
+   },
+   {
+    "id": "creepers",
+    "name": "Creepers",
+    "price": 50,
+    "fame": 0
+   },
+   {
+    "id": "platforms",
+    "name": "Platform boots",
+    "price": 120,
+    "fame": 500
+   }
+  ],
+  "outer": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "leather",
+    "name": "Biker jacket",
+    "price": 0,
+    "fame": 0,
+    "sleeve": "long"
+   },
+   {
+    "id": "denimvest",
+    "name": "Battle vest",
+    "price": 0,
+    "fame": 0,
+    "sleeve": "none"
+   },
+   {
+    "id": "bomber",
+    "name": "Bomber jacket",
+    "price": 40,
+    "fame": 0,
+    "sleeve": "long"
+   },
+   {
+    "id": "studvest",
+    "name": "Studded vest",
+    "price": 70,
+    "fame": 100,
+    "sleeve": "none"
+   },
+   {
+    "id": "trench",
+    "name": "Long coat",
+    "price": 90,
+    "fame": 100,
+    "sleeve": "long"
+   },
+   {
+    "id": "blazer",
+    "name": "Glam blazer",
+    "price": 160,
+    "fame": 500,
+    "sleeve": "long"
+   },
+   {
+    "id": "furcoat",
+    "name": "Faux-fur coat",
+    "price": 400,
+    "fame": 2000,
+    "sleeve": "long"
+   }
+  ],
+  "hat": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "beanie",
+    "name": "Beanie",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "bandana",
+    "name": "Bandana",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "cap",
+    "name": "Backwards cap",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "cowboy",
+    "name": "Cowboy hat",
+    "price": 50,
+    "fame": 0
+   },
+   {
+    "id": "fedora",
+    "name": "Fedora",
+    "price": 50,
+    "fame": 0
+   },
+   {
+    "id": "tophat",
+    "name": "Top hat",
+    "price": 90,
+    "fame": 500
+   },
+   {
+    "id": "crown",
+    "name": "Crown",
+    "price": 1000,
+    "fame": 25000
+   }
+  ],
+  "glasses": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "round",
+    "name": "Round shades",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "aviators",
+    "name": "Aviators",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "eyepatch",
+    "name": "Eyepatch",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "heart",
+    "name": "Heart shades",
+    "price": 40,
+    "fame": 0
+   },
+   {
+    "id": "star",
+    "name": "Star shades",
+    "price": 80,
+    "fame": 100
+   },
+   {
+    "id": "visor",
+    "name": "Cyber visor",
+    "price": 150,
+    "fame": 2000
+   }
+  ],
+  "neck": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "chain",
+    "name": "Chain",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "choker",
+    "name": "Spiked choker",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "bandana",
+    "name": "Neck bandana",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "scarf",
+    "name": "Long scarf",
+    "price": 30,
+    "fame": 0
+   },
+   {
+    "id": "pendant",
+    "name": "Pick pendant",
+    "price": 30,
+    "fame": 0
+   },
+   {
+    "id": "bowtie",
+    "name": "Bow tie",
+    "price": 30,
+    "fame": 100
+   }
+  ],
+  "wrist": [
+   {
+    "id": "none",
+    "name": "None",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "spiked",
+    "name": "Spiked cuffs",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "sweatband",
+    "name": "Sweatbands",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "bracelets",
+    "name": "Bracelets",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "gloves",
+    "name": "Fingerless gloves"
+   }
+  ],
+  "belt": [
+   {
+    "id": "none",
+    "name": "Plain belt"
+   },
+   {
+    "id": "studded",
+    "name": "Studded"
+   },
+   {
+    "id": "chain",
+    "name": "Wallet chain"
+   },
+   {
+    "id": "pyramid",
+    "name": "Pyramid studs",
+    "price": 120
+   },
+   {
+    "id": "bullet",
+    "name": "Bullet belt",
+    "price": 300,
+    "fame": 400
+   }
+  ]
+ },
+ "piercings": [
+  {
+   "id": "ear",
+   "name": "Ear hoops"
+  },
+  {
+   "id": "gauge",
+   "name": "Ear gauge"
+  },
+  {
+   "id": "nose",
+   "name": "Nose stud"
+  },
+  {
+   "id": "septum",
+   "name": "Septum ring"
+  },
+  {
+   "id": "brow",
+   "name": "Eyebrow bar"
+  },
+  {
+   "id": "lip",
+   "name": "Lip ring"
+  }
+ ],
+ "tattoos": {
+  "slots": [
+   {
+    "id": "armL_upper",
+    "name": "Left upper arm"
+   },
+   {
+    "id": "armL_lower",
+    "name": "Left forearm"
+   },
+   {
+    "id": "armR_upper",
+    "name": "Right upper arm"
+   },
+   {
+    "id": "armR_lower",
+    "name": "Right forearm"
+   },
+   {
+    "id": "neck",
+    "name": "Neck"
+   },
+   {
+    "id": "chest",
+    "name": "Chest"
+   },
+   {
+    "id": "cheek",
+    "name": "Face"
+   },
+   {
+    "id": "hands",
+    "name": "Hands"
+   },
+   {
+    "id": "legL",
+    "name": "Left leg"
+   },
+   {
+    "id": "legR",
+    "name": "Right leg"
+   }
+  ],
+  "designs": [
+   {
+    "id": "rose",
+    "name": "Rose",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "skull",
+    "name": "Skull",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "star",
+    "name": "Star",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "heart",
+    "name": "Heart",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "dagger",
+    "name": "Dagger",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "bolt",
+    "name": "Lightning",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "note",
+    "name": "Music note",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "flame",
+    "name": "Flames",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "swallow",
+    "name": "Swallow",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "tribal",
+    "name": "Tribal band",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "web",
+    "name": "Spiderweb",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "sleeve",
+    "name": "Full sleeve",
+    "price": 150,
+    "fame": 100
+   },
+   {
+    "id": "snake",
+    "name": "Snake",
+    "price": 80,
+    "fame": 100
+   },
+   {
+    "id": "wings",
+    "name": "Wings",
+    "price": 120,
+    "fame": 500
+   }
+  ],
+  "max": 8
+ },
+ "instruments": {
+  "guitar": {
+   "name": "Guitar",
+   "role": "Lead guitar",
+   "models": [
+    {
+     "id": "classic",
+     "name": "Classic double-cut",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "singlecut",
+     "name": "Single-cut",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "acoustic",
+     "name": "Acoustic",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "vee",
+     "name": "Arrowhead V",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "hollow",
+     "name": "Hollowbody",
+     "price": 150,
+     "fame": 100
+    },
+    {
+     "id": "star",
+     "name": "Star body",
+     "price": 300,
+     "fame": 2000
+    }
+   ]
+  },
+  "bass": {
+   "name": "Bass",
+   "role": "Bass",
+   "models": [
+    {
+     "id": "classic",
+     "name": "Offset bass",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "pshape",
+     "name": "Round bass",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "fivestring",
+     "name": "Five-string",
+     "price": 200,
+     "fame": 500
+    }
+   ]
+  },
+  "drums": {
+   "name": "Drums",
+   "role": "Drums",
+   "models": [
+    {
+     "id": "classic",
+     "name": "Wood sticks",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "glow",
+     "name": "Glow sticks",
+     "price": 120,
+     "fame": 500
+    }
+   ]
+  },
+  "keys": {
+   "name": "Keytar",
+   "role": "Keys",
+   "models": [
+    {
+     "id": "classic",
+     "name": "Keytar",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "retro",
+     "name": "Retro synth keytar",
+     "price": 180,
+     "fame": 500
+    }
+   ]
+  },
+  "vocals": {
+   "name": "Microphone",
+   "role": "Vocals",
+   "models": [
+    {
+     "id": "handheld",
+     "name": "Handheld mic",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "vintage",
+     "name": "Vintage mic",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "stand",
+     "name": "Mic stand",
+     "price": 0,
+     "fame": 0
+    }
+   ]
+  },
+  "violin": {
+   "name": "Violin",
+   "role": "Strings",
+   "models": [
+    {
+     "id": "classic",
+     "name": "Violin",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "electric",
+     "name": "Electric violin",
+     "price": 220,
+     "fame": 500
+    }
+   ]
+  },
+  "finishes": [
+   {
+    "id": "gloss",
+    "name": "Gloss",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "matte",
+    "name": "Matte",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "sunburst",
+    "name": "Sunburst",
+    "price": 0,
+    "fame": 0
+   },
+   {
+    "id": "sparkle",
+    "name": "Sparkle",
+    "price": 100,
+    "fame": 100
+   },
+   {
+    "id": "chrome",
+    "name": "Chrome",
+    "price": 250,
+    "fame": 2000
+   }
+  ]
+ },
+ "stances": [
+  {
+   "id": "wide",
+   "name": "Rock stance"
+  },
+  {
+   "id": "power",
+   "name": "Power stance"
+  },
+  {
+   "id": "relaxed",
+   "name": "Relaxed"
+  }
+ ],
+ "fits": [
+  {
+   "id": "skinny",
+   "name": "Skinny"
+  },
+  {
+   "id": "regular",
+   "name": "Regular"
+  },
+  {
+   "id": "baggy",
+   "name": "Baggy"
+  }
+ ],
+ "sliders": {
+  "body": [
+   {
+    "id": "head",
+    "name": "Head size"
+   },
+   {
+    "id": "shoulders",
+    "name": "Shoulders"
+   },
+   {
+    "id": "chest",
+    "name": "Chest"
+   },
+   {
+    "id": "waist",
+    "name": "Waist"
+   },
+   {
+    "id": "hips",
+    "name": "Hips"
+   },
+   {
+    "id": "arms",
+    "name": "Arm thickness"
+   },
+   {
+    "id": "legs",
+    "name": "Leg thickness"
+   },
+   {
+    "id": "muscle",
+    "name": "Muscle"
+   }
+  ],
+  "face": [
+   {
+    "id": "eyeSize",
+    "name": "Eye size"
+   },
+   {
+    "id": "eyeGap",
+    "name": "Eye spacing"
+   },
+   {
+    "id": "browTilt",
+    "name": "Brow tilt (calm ↔ fierce)"
+   },
+   {
+    "id": "noseSize",
+    "name": "Nose size"
+   },
+   {
+    "id": "mouthWidth",
+    "name": "Mouth width"
+   },
+   {
+    "id": "jaw",
+    "name": "Jaw width"
+   }
+  ]
+ },
+ "presetsMax": 6
 }

@@ -286,3 +286,25 @@ dialog.wide { width: min(900px, 96vw); } dialog::backdrop { background: #05030ac
 .profile-band { display: flex; gap: 8px; flex-wrap: wrap; } .profile-band div { width: 70px; text-align: center; } .profile-band small { font-size: .7rem; color: var(--muted); }
 .toast.achievement { background: #2d2310; border-color: var(--yellow); } .toast.goal { background: #102a2d; border-color: var(--cyan); }
 @media (max-width: 700px) { .profile-modal { grid-template-columns: 1fr; } .goals li { grid-template-columns: 1fr; } }
+
+/* ---------- designer tools */
+.preview-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.seg.small { margin: 0; } .seg.small button { padding: 6px 10px; font-size: .85rem; }
+.seg button[aria-pressed="true"] { background: var(--pink); color: #fff; }
+.mini-ctl { display: flex; gap: 6px; align-items: center; font-weight: 700; font-size: .9rem; }
+.mini-ctl select { padding: 4px 8px; }
+.gap-s { gap: 6px; }
+.btn.tiny { padding: 2px 8px; font-size: .85rem; min-height: 0; }
+.sliders { display: grid; gap: 6px; background: #0e0a18; border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.slider-row { display: grid; grid-template-columns: 150px 1fr 64px auto; gap: 10px; align-items: center; font-weight: 700; }
+.slider-row input[type=range] { width: 100%; accent-color: var(--pink); }
+.slider-row output { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; text-align: right; }
+.preview-stage svg.view-face { border-radius: 12px; }
+.preset-list { display: grid; gap: 10px; }
+.preset { display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: center; background: #0e0a18; border: 2px solid var(--line); border-radius: 14px; padding: 8px; }
+.preset.empty .preset-thumb { display: grid; place-items: center; height: 110px; color: var(--muted); font-size: 2rem; border: 2px dashed var(--line); border-radius: 10px; }
+.preset-body { display: grid; gap: 8px; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 700px) { .slider-row { grid-template-columns: 1fr 56px auto; } .slider-row label { grid-column: 1 / -1; } }
+.preview-stage { overflow: hidden; }
+svg.avatar.view-face { overflow: hidden; aspect-ratio: 1 / 1; height: auto; width: 100%; }

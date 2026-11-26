@@ -42,7 +42,15 @@ function migrations(): array
             add_index($pdo, 'idx_rockstars_gigs', 'rockstars', 'gigs_played');
         },
 
-        // 4: next change goes here …
+        // 4: saved outfit presets (designer)
+        4 => function (PDO $pdo) {
+            $t = sql_types();
+            $pdo->exec("CREATE TABLE IF NOT EXISTS look_presets (
+                rockstar_id {$t['FK']} NOT NULL, slot INT NOT NULL, name VARCHAR(30) NOT NULL, appearance {$t['TEXT']} NOT NULL, saved_at INT NOT NULL,
+                PRIMARY KEY (rockstar_id, slot)) {$t['END']}");
+        },
+
+        // 5: next change goes here …
     ];
 }
 
@@ -70,8 +78,8 @@ function schema_version(PDO $pdo): int
 function sql_types(): array
 {
     return DB_DRIVER === 'mysql'
-        ? ['PK' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY', 'FK' => 'INT UNSIGNED', 'END' => 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci']
-        : ['PK' => 'INTEGER PRIMARY KEY AUTOINCREMENT', 'FK' => 'INTEGER', 'END' => ''];
+        ? ['PK' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY', 'FK' => 'INT UNSIGNED', 'TEXT' => 'MEDIUMTEXT', 'END' => 'ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci']
+        : ['PK' => 'INTEGER PRIMARY KEY AUTOINCREMENT', 'FK' => 'INTEGER', 'TEXT' => 'TEXT', 'END' => ''];
 }
 
 function column_exists(PDO $pdo, string $table, string $col): bool

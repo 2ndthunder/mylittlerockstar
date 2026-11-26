@@ -13,6 +13,12 @@ function find_item(array $list, $id): ?array
     return null;
 }
 
+/** A slider value: integer -50..50 (0 = default). */
+function slider($v): int { return max(-50, min(50, (int)round((float)$v))); }
+
+/** Slider ids from catalog.json, e.g. slider_ids('body') → ['head', 'shoulders', ...]. */
+function slider_ids(string $group): array { return array_column(looks()['sliders'][$group] ?? [], 'id'); }
+
 /** Item key used in the wardrobe table, e.g. "outfit.top.corset" or "hair.liberty". */
 function item_key(string $group, string $id): string { return "$group.$id"; }
 
@@ -38,6 +44,9 @@ function clean_appearance(array $a, array $owned, int $fame, bool $creating = fa
     $out['build']  = $pickId($L['builds'], $a['build'] ?? '', 'average');
     $out['height'] = round(max(0.88, min(1.12, (float)($a['height'] ?? 1))), 2);
     $out['skin']   = hexcolor($a['skin'] ?? '', $L['palettes']['skin'][2]);
+    $out['stance'] = $pickId($L['stances'], $a['stance'] ?? '', 'wide');
+    $out['body'] = [];
+    foreach (slider_ids('body') as $k) $out['body'][$k] = slider($a['body'][$k] ?? 0);
 
     $f = $a['face'] ?? [];
     $out['face'] = [
@@ -49,6 +58,7 @@ function clean_appearance(array $a, array $owned, int $fame, bool $creating = fa
         'mouth' => $pickId($L['face']['mouth'], $f['mouth'] ?? '', 'smile'),
         'marks' => $pickId($L['face']['marks'], $f['marks'] ?? '', 'none'),
     ];
+    foreach (slider_ids('face') as $k) $out['face'][$k] = slider($f[$k] ?? 0);
 
     $h = $a['hair'] ?? [];
     $style = find_item($L['hair'], $h['style'] ?? '') ?? find_item($L['hair'], 'messy');
@@ -82,6 +92,7 @@ function clean_appearance(array $a, array $owned, int $fame, bool $creating = fa
         $o = ['id' => $item['id'], 'color' => hexcolor($in['color'] ?? '', '#121216')];
         if (!empty($in['color2'])) $o['color2'] = hexcolor($in['color2']);
         if (!empty($in['pattern']) && in_array($in['pattern'], $patterns, true)) $o['pattern'] = $in['pattern'];
+        if (in_array($slot, ['top', 'outer', 'bottom'], true) && in_array($in['fit'] ?? '', array_column($L['fits'], 'id'), true)) $o['fit'] = $in['fit'];
         if ($slot === 'top' && !empty($item['print']) && !empty($in['print'])) {
             preg_match('/^.{0,12}/u', preg_replace('/[^\p{L}\p{N} !&\-\'.]/u', '', (string)$in['print']), $pm);
             $o['print'] = $pm[0] ?? '';
@@ -120,7 +131,7 @@ function random_appearance(string $role, int $seed): array
     $pick = fn(array $a) => $a[mt_rand(0, count($a) - 1)];
     $free = fn(array $list) => array_values(array_filter($list, fn($i) => empty($i['price']) && empty($i['fame'])));
     $item = fn(array $list) => ['id' => $pick($free($list))['id'], 'color' => $pick($P['fabric']), 'color2' => $pick($P['fabric']),
-        'pattern' => mt_rand(1, 4) === 1 ? $pick($L['patterns'])['id'] : 'solid'];
+        'pattern' => mt_rand(1, 4) === 1 ? $pick($L['patterns'])['id'] : 'solid', 'fit' => $pick(['regular', 'regular', 'baggy', 'skinny'])];
     $tattoos = [];
     for ($n = mt_rand(0, 3), $k = 0; $k < $n; $k++) {
         $tattoos[] = ['slot' => $pick($L['tattoos']['slots'])['id'], 'design' => $pick($free($L['tattoos']['designs']))['id'], 'color' => $pick(array_slice($P['ink'], 0, 3))];
@@ -129,9 +140,12 @@ function random_appearance(string $role, int $seed): array
     if (mt_rand(1, 3) === 1) $top['print'] = $pick(['ROCK', 'RIOT', 'NOISE', 'LOUD', 'FUZZ', 'AMPED']);
     $look = [
         'build' => $pick($L['builds'])['id'], 'height' => round(0.94 + mt_rand(0, 12) / 100, 2), 'skin' => $pick(array_slice($P['skin'], 0, 10)),
+        'stance' => $pick(['wide', 'wide', 'power', 'relaxed']),
+        'body' => array_combine(slider_ids('body'), array_map(fn() => mt_rand(-20, 20), slider_ids('body'))),
         'face' => ['shape' => $pick($L['face']['shape'])['id'], 'eyes' => $pick($L['face']['eyes'])['id'], 'eyeColor' => $pick($P['eyes']),
             'brows' => $pick(array_slice($L['face']['brows'], 0, 5))['id'], 'nose' => $pick($L['face']['nose'])['id'],
-            'mouth' => $pick($L['face']['mouth'])['id'], 'marks' => mt_rand(1, 3) === 1 ? $pick($L['face']['marks'])['id'] : 'none'],
+            'mouth' => $pick($L['face']['mouth'])['id'], 'marks' => mt_rand(1, 3) === 1 ? $pick($L['face']['marks'])['id'] : 'none']
+            + array_combine(slider_ids('face'), array_map(fn() => mt_rand(-25, 25), slider_ids('face'))),
         'hair' => ['style' => $pick($free($L['hair']))['id'], 'color' => $pick($P['hair']), 'color2' => mt_rand(1, 4) === 1 ? $pick($P['hair']) : '',
             'facial' => mt_rand(1, 3) === 1 ? $pick($L['facialHair'])['id'] : 'none', 'facialColor' => ''],
         'makeup' => ['liner' => mt_rand(1, 3) === 1, 'shadow' => '', 'lips' => mt_rand(1, 4) === 1 ? $pick($P['lips']) : '',
@@ -145,6 +159,7 @@ function random_appearance(string $role, int $seed): array
             'glasses' => mt_rand(1, 4) === 1 ? ['id' => $pick($free($L['outfit']['glasses']))['id'], 'color' => '#121216'] : ['id' => 'none'],
             'neck' => mt_rand(1, 3) === 1 ? ['id' => $pick($free($L['outfit']['neck']))['id'], 'color' => '#c0c5cc'] : ['id' => 'none'],
             'wrist' => mt_rand(1, 2) === 1 ? ['id' => $pick($free($L['outfit']['wrist']))['id'], 'color' => $pick($P['fabric'])] : ['id' => 'none'],
+            'belt' => mt_rand(1, 2) === 1 ? ['id' => $pick($free($L['outfit']['belt']))['id'], 'color' => '#141014'] : ['id' => 'none'],
         ],
         'piercings' => array_values(array_map(fn($p) => $p['id'], array_filter($L['piercings'], fn() => mt_rand(1, 6) === 1))),
         'tattoos' => $tattoos,

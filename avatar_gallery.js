@@ -15,6 +15,16 @@ fetch('assets/data/catalog.json').then(r => r.json()).then(cat => {
   };
   const big = location.search.includes('big');
   const show = (a, opt = {}) => { const d = document.createElement('div'); d.style.width = big ? '420px' : '210px'; d.innerHTML = Avatar.svg(a, { anim: 'none', ...opt }); document.body.appendChild(d); };
+  if (location.search.includes('instruments')) {
+    const list = [['guitar', 'banjo'], ['guitar', 'offset'], ['violin', 'cello'], ['violin', 'harp'], ['violin', 'sitar'], ['keys', 'synth'], ['keys', 'piano'], ['keys', 'accordion'],
+      ['horns', 'trombone'], ['horns', 'sax'], ['horns', 'trumpet'], ['dj', 'decks'], ['dj', 'boombox'], ['drums', 'marching'], ['drums', 'electronic'], ['vocals', 'harmonica'], ['vocals', 'vintagestand']];
+    list.forEach(([type, model]) => show({ ...target, stance: 'relaxed', instrument: { type, model, color: { horns: '#e3b23c', violin: '#7a3b16' }[type] || '#2a9d8f', finish: 'gloss' } }));
+    window.done = true; return;
+  }
+  if (location.search.includes('archetypes')) {
+    (cat.archetypes || []).forEach(ar => show(Avatar.fromArchetype(cat, ar.id), { title: ar.name }));
+    window.done = true; return;
+  }
   show(target); show(target, { view: 'face' }); show(target, { expression: 'shout' });
   ['guitar', 'bass', 'vocals', 'drums', 'keys', 'violin', 'guitar', 'none', 'bass'].forEach(t => {
     const a = Avatar.random(cat, { instrument: t === 'none' ? 'guitar' : t, freeOnly: false });

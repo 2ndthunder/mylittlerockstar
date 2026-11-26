@@ -25,8 +25,9 @@ const Creator = (() => {
     let saved = presets ? clone(presets) : null;
 
     const STEPS = mode === 'create'
-      ? ['Identity', 'Body', 'Face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', 'Backstory', 'Band']
-      : ['Body', 'Face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', ...(saved ? ['Saved looks'] : [])];
+      ? ['Identity', 'Starter look', 'Body', 'Face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', 'Backstory', 'Band']
+      : ['Starter look', 'Body', 'Face', 'Hair & makeup', 'Outfit', 'Ink & piercings', 'Instrument', ...(saved ? ['Saved looks'] : [])];
+    let archFilter = 'all';
     let step = 0;
 
     /* ---------- undo / redo: snapshot the look after every change (debounced so slider drags are one step) */
@@ -172,8 +173,62 @@ const Creator = (() => {
     function field(label, html) { const w = document.createElement('label'); w.className = 'ctl'; w.innerHTML = `${esc(label)} ${html}`; return w; }
     function heading(t) { const h = document.createElement('h3'); h.textContent = t; return h; }
 
+    /* ---------- starter looks: apply an archetype, swapping anything still locked for a free lookalike */
+    const FALLBACK = { creepers: 'sneakers', cowboy: 'boots', corset: 'tank', mesh: 'tank', studvest: 'denimvest', trench: 'leather', flares: 'skinny', platforms: 'boots',
+      fedora: 'porkpie', vee: 'classic', star: 'classic', furcoat: 'leather', tophat: 'porkpie', hairmetal: 'curly', liberty: 'spiky', pompadour: 'messy', mohawk: 'spiky', locs: 'braids', mullet: 'messy' };
+    function freeify(look) {
+      const swaps = [];
+      const fix = (group, list, obj, key = 'id') => {
+        const item = list.find(x => x.id === obj[key]);
+        if (!item || !locked(group, item)) return;
+        const fb = list.find(x => x.id === FALLBACK[item.id] && !locked(group, x)) || list.find(x => x.id === 'none') || list.find(x => !locked(group, x));
+        swaps.push(item.name); obj[key] = fb.id;
+      };
+      Object.entries(look.outfit).forEach(([slot, it]) => L.outfit[slot] && fix(`outfit.${slot}`, L.outfit[slot], it));
+      fix('hair', L.hair, look.hair, 'style');
+      fix('makeup.paint', L.makeup.paint, look.makeup, 'paint');
+      fix(`instrument.${look.instrument.type}`, L.instruments[look.instrument.type].models, look.instrument, 'model');
+      fix('finish', L.instruments.finishes, look.instrument, 'finish');
+      return swaps;
+    }
+    function applyArchetype(arId) {
+      const look = Avatar.fromArchetype(L, arId);
+      const swaps = freeify(look);
+      Object.keys(a).forEach(k => delete a[k]); Object.assign(a, look);
+      renderStep(); draw();
+      const ar = L.archetypes.find(x => x.id === arId);
+      const msg = swaps.length ? `${ar.name} applied. Still locked, so swapped for free lookalikes: ${swaps.join(', ')}. Unlock them in the wardrobe.` : `${ar.name} applied. Make it yours in the next steps.`;
+      const n = body.querySelector('.arch-note'); if (n) n.textContent = msg;
+      say(msg);
+    }
+
     /* ---------- steps */
     const steps = {
+      'Starter look'() {
+        body.append(heading('Pick a starting vibe'));
+        body.append(Object.assign(document.createElement('p'), { className: 'muted', textContent: 'Optional: start from one of 30 rockstars, then change anything you like. Undo brings your old look back.' }));
+        const roles = [['all', 'All'], ...Object.entries(L.instruments).filter(([k]) => k !== 'finishes').map(([k, v]) => [k, v.name])];
+        const seg = document.createElement('div');
+        seg.className = 'chips'; seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'Filter by instrument');
+        roles.forEach(([k, n]) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (archFilter === k ? ' on' : ''); b.textContent = n; b.setAttribute('aria-pressed', archFilter === k);
+          b.addEventListener('click', () => { archFilter = k; renderStep(); });
+          seg.append(b);
+        });
+        body.append(seg);
+        const note = document.createElement('p'); note.className = 'arch-note muted'; note.setAttribute('aria-live', 'polite'); body.append(note);
+        const grid = document.createElement('div');
+        grid.className = 'arch-grid';
+        L.archetypes.filter(x => archFilter === 'all' || x.instrument === archFilter).forEach(ar => {
+          const b = document.createElement('button');
+          b.type = 'button'; b.className = 'arch-card';
+          b.innerHTML = `${Avatar.svg(Avatar.fromArchetype(L, ar.id), { anim: 'none', title: ar.name })}<span>${esc(ar.name.replace(/^The /, ''))}</span>`;
+          b.setAttribute('aria-label', `Start from ${ar.name}`);
+          b.addEventListener('click', () => applyArchetype(ar.id));
+          grid.append(b);
+        });
+        body.append(grid);
+      },
       'Identity'() {
         body.append(heading('Who are you?'));
         const f = document.createElement('div');
@@ -426,6 +481,7 @@ const Creator = (() => {
       }
       if (act === 'rand-step') {
         const r = Avatar.random(L, { instrument: a.instrument.type }), name = STEPS[step];
+        if (name === 'Starter look') { const ids = L.archetypes.filter(x => archFilter === 'all' || x.instrument === archFilter).map(x => x.id); applyArchetype(ids[Math.floor(Math.random() * ids.length)]); return; }
         if (name === 'Body') { a.build = r.build; a.height = r.height; a.skin = r.skin; a.body = r.body; a.stance = r.stance; }
         if (name === 'Face') a.face = r.face;
         if (name === 'Hair & makeup') { a.hair = r.hair; a.makeup = r.makeup; }

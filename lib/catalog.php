@@ -143,5 +143,5 @@ const SONG_THEMES = [
         'words' => ['darkness', 'crawl', 'demon', 'silence', 'bleed', 'ashes', 'storm', 'grave', 'chains', 'howl', 'fear', 'void']],
 ];
 
-const BAND_ROLES = ['guitar' => 'Lead guitar', 'bass' => 'Bass', 'drums' => 'Drums', 'keys' => 'Keys', 'vocals' => 'Vocals', 'violin' => 'Strings'];
+const BAND_ROLES = ['guitar' => 'Lead guitar', 'bass' => 'Bass', 'drums' => 'Drums', 'keys' => 'Keys', 'vocals' => 'Vocals', 'violin' => 'Strings', 'horns' => 'Horns', 'dj' => 'DJ'];
 const MAX_BAND = 5;   // including the player

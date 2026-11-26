@@ -123,10 +123,86 @@ function clean_appearance(array $a, array $owned, int $fame, bool $creating = fa
     return $out;
 }
 
-/** Random look for NPCs (free items only, seeded so a recruit always looks the same). */
-function random_appearance(string $role, int $seed): array
+/**
+ * A full look from a catalog archetype (the 30 starter characters). With a seed, body/face sliders, skin and
+ * sometimes hair colour vary a little so two recruits of the same archetype don't look identical.
+ */
+function archetype_appearance(string $id, ?int $seed = null): array
+{
+    $L = looks();
+    $ar = null;
+    foreach ($L['archetypes'] ?? [] as $x) if ($x['id'] === $id) $ar = $x;
+    if (!$ar) fail('Unknown starter look.');
+    $look = $ar['look'];
+    $none = ['id' => 'none'];
+    $base = [
+        'build' => 'average', 'height' => 1, 'skin' => '#eab48f', 'stance' => 'wide',
+        'body' => array_fill_keys(slider_ids('body'), 0),
+        'face' => ['shape' => 'oval', 'eyes' => 'toon', 'eyeColor' => '#3b2414', 'brows' => 'soft', 'nose' => 'button', 'mouth' => 'smile', 'marks' => 'none'] + array_fill_keys(slider_ids('face'), 0),
+        'hair' => ['style' => 'messy', 'color' => '#16120f', 'color2' => '', 'facial' => 'none', 'facialColor' => ''],
+        'makeup' => ['liner' => false, 'shadow' => '', 'lips' => '', 'paint' => 'none', 'paintColor' => '#121216'],
+        'outfit' => ['top' => ['id' => 'tee', 'color' => '#121216'], 'outer' => $none, 'bottom' => ['id' => 'skinny', 'color' => '#1d2a4d'], 'legwear' => $none,
+            'shoes' => ['id' => 'sneakers', 'color' => '#121216'], 'hat' => $none, 'glasses' => $none, 'neck' => $none, 'wrist' => $none, 'belt' => $none],
+        'piercings' => [], 'tattoos' => [],
+    ];
+    $a = array_merge($base, $look);
+    foreach (['body', 'face', 'hair', 'makeup', 'outfit'] as $k) $a[$k] = array_merge($base[$k], $look[$k] ?? []);
+    if ($seed !== null) {
+        mt_srand($seed);
+        foreach (slider_ids('body') as $k) $a['body'][$k] = max(-50, min(50, $a['body'][$k] + mt_rand(-15, 15)));
+        foreach (slider_ids('face') as $k) $a['face'][$k] = max(-50, min(50, ($a['face'][$k] ?? 0) + mt_rand(-15, 15)));
+        $skins = array_slice($L['palettes']['skin'], 0, 10);
+        if (mt_rand(0, 1)) $a['skin'] = $skins[mt_rand(0, count($skins) - 1)];
+        if (mt_rand(1, 10) <= 3) $a['hair']['color'] = $L['palettes']['hair'][mt_rand(0, count($L['palettes']['hair']) - 1)];
+        mt_srand();
+    }
+    return $a;
+}
+
+/** Swap shop/fame-locked items for free lookalikes (same fallbacks as the designer). */
+function freeify_look(array $a): array
+{
+    $L = looks();
+    $FB = ['creepers' => 'sneakers', 'cowboy' => 'boots', 'corset' => 'tank', 'mesh' => 'tank', 'studvest' => 'denimvest', 'trench' => 'leather',
+        'flares' => 'skinny', 'platforms' => 'boots', 'fedora' => 'porkpie', 'vee' => 'classic', 'star' => 'classic', 'furcoat' => 'leather', 'tophat' => 'porkpie',
+        'hairmetal' => 'curly', 'liberty' => 'spiky', 'pompadour' => 'messy', 'mohawk' => 'spiky', 'locs' => 'braids', 'mullet' => 'messy'];
+    $isLocked = fn(?array $i) => $i && (($i['price'] ?? 0) > 0 || ($i['fame'] ?? 0) > 0);
+    $fix = function (array $list, $id) use ($FB, $isLocked) {
+        $item = find_item($list, $id);
+        if (!$isLocked($item)) return $id;
+        foreach ([$FB[$id] ?? null, 'none'] as $want) { $f = $want ? find_item($list, $want) : null; if ($f && !$isLocked($f)) return $f['id']; }
+        foreach ($list as $i) if (!$isLocked($i)) return $i['id'];
+        return $id;
+    };
+    foreach ($a['outfit'] as $slot => $it) if (isset($L['outfit'][$slot])) $a['outfit'][$slot]['id'] = $fix($L['outfit'][$slot], $it['id'] ?? 'none');
+    $a['hair']['style'] = $fix($L['hair'], $a['hair']['style']);
+    $a['makeup']['paint'] = $fix($L['makeup']['paint'], $a['makeup']['paint'] ?? 'none');
+    $t = $a['instrument']['type'];
+    $a['instrument']['model'] = $fix($L['instruments'][$t]['models'], $a['instrument']['model']);
+    $a['instrument']['finish'] = $fix($L['instruments']['finishes'], $a['instrument']['finish'] ?? 'gloss');
+    return $a;
+}
+
+/** Archetype ids whose instrument is this role (e.g. 'horns' → ska, funksax, trumpet). */
+function archetypes_for(string $role): array
+{
+    return array_values(array_map(fn($x) => $x['id'], array_filter(looks()['archetypes'] ?? [], fn($x) => $x['instrument'] === $role)));
+}
+
+/**
+ * Random look, seeded so a recruit always looks the same. Most are a remix of a starter archetype for the role.
+ * $premium = true keeps shop gear (recruits flex items you can't afford yet); otherwise everything is free.
+ */
+function random_appearance(string $role, int $seed, bool $premium = false): array
 {
     mt_srand($seed);
+    $pool = archetypes_for($role);
+    if ($pool && mt_rand(1, 10) <= 7) {
+        $id = $pool[mt_rand(0, count($pool) - 1)];
+        mt_srand();
+        $look = archetype_appearance($id, $seed);
+        return $premium ? $look : freeify_look($look);
+    }
     $L = looks(); $P = $L['palettes'];
     $pick = fn(array $a) => $a[mt_rand(0, count($a) - 1)];
     $free = fn(array $list) => array_values(array_filter($list, fn($i) => empty($i['price']) && empty($i['fame'])));

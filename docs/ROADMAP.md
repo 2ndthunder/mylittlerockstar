@@ -7,6 +7,15 @@ Where the game goes next, roughly in order. Each item lists where it plugs in.
   wild spiky hair, belts, fingerless gloves; designer with face close-up, pose + expression preview, undo/redo,
   saved looks (migration 4, `look_presets`).
 
+## Done: variety pass
+- 30 starter archetypes (catalog `archetypes`), used by the designer and by recruits (`archetype_appearance`, `freeify_look`).
+- New instruments: banjo, offset guitar, cello, harp, sitar, synth, upright piano, accordion, trombone, sax, trumpet,
+  turntables, boombox, marching snare, electronic pads, harmonica, vintage stand mic; roles Horns and DJ; voices for each.
+- Wardrobe: glam/track/tech/uniform/fringe jackets, cardigan, waistcoat, overshirt, cropped jacket, open-collar shirt,
+  cut-off tee, overalls, track pants, patched jeans, ball gown, harem pants, socks, sandals, glow boots, curled slippers,
+  8 hats, 7 hairstyles, big beard, square shades, tie, medallion, gloves, opera gloves, glam star paint,
+  7 patterns (camo, corduroy, pinstripe, sparkle, zebra, Hawaiian floral, psychedelic).
+
 ## Now: characters, continued
 - Keep closing the gap to `assets/art/style_target.jpg`: dynamic poses (leaning, jumping, kneeling solo), 3/4 body turn.
 - Expressions during play: rock face on a perfect streak, shout on a crowd surf, wince on a miss.

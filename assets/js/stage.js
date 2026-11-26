@@ -84,6 +84,11 @@ const Stage = (() => {
       [1, 1.5, 2].forEach(m => { const o = this.ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq * m; o.connect(sh); o.start(t); o.stop(t + dur + 0.05); });
       sh.connect(f).connect(g).connect(this.master);
     }
+    lp(freq) { const f = this.ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq; f.connect(this.master); return f; }
+    vibrato(o, t, dur, rate, depth) {
+      const lfo = this.ac.createOscillator(), lg = this.ac.createGain(); lfo.frequency.value = rate; lg.gain.value = depth;
+      lfo.connect(lg).connect(o.frequency); lfo.start(t); lfo.stop(t + dur + 0.05);
+    }
     /** The note YOU play, in your instrument's voice. */
     voice(instrument, freq, t = this.ac.currentTime, dur = 0.35) {
       switch (instrument) {
@@ -94,6 +99,23 @@ const Stage = (() => {
           const lfo = this.ac.createOscillator(), lg = this.ac.createGain(); lfo.frequency.value = 6; lg.gain.value = 6;
           lfo.connect(lg).connect(o.frequency); lfo.start(t); lfo.stop(t + dur * 1.3 + 0.05); break; }
         case 'vocals': this.osc('sine', freq * 2, t, dur, 0.2, null, 0.03); this.osc('triangle', freq * 4, t, dur, 0.04, null, 0.03); break;
+        case 'cello': this.vibrato(this.osc('sawtooth', freq, t, dur * 1.4, 0.14, this.lp(1400), 0.06), t, dur * 1.4, 5, 4); break;
+        case 'harp': case 'banjo': case 'sitar': {   // plucked: fast decay; sitar gets a buzzy twang
+          const hi = key => key === 'banjo' ? 3 : 2;
+          this.osc(instrument === 'sitar' ? 'sawtooth' : 'triangle', freq * hi(instrument), t, dur * 0.7, instrument === 'harp' ? 0.22 : 0.16, instrument === 'sitar' ? this.lp(2400) : null, 0.002);
+          if (instrument === 'sitar') this.osc('sine', freq * 3.01, t, dur, 0.05); break; }
+        case 'synth': this.osc('sawtooth', freq, t, dur, 0.1, this.lp(2200)); this.osc('sawtooth', freq * 1.007, t, dur, 0.1, this.lp(2200)); break;
+        case 'piano': this.osc('triangle', freq * 2, t, dur * 1.2, 0.22, null, 0.002); this.osc('sine', freq * 4, t, dur * 0.5, 0.05, null, 0.002); break;
+        case 'accordion': case 'harmonica': {
+          const v = this.osc('square', freq * 2, t, dur, 0.08, this.lp(instrument === 'harmonica' ? 2600 : 1800), 0.02);
+          this.osc('square', freq * 2.012, t, dur, 0.06, this.lp(1800), 0.02); this.vibrato(v, t, dur, 5.5, 3); break; }
+        case 'trombone': case 'trumpet': {   // brass: filter opens as the note swells
+          const f = this.ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(400, t); f.frequency.linearRampToValueAtTime(instrument === 'trumpet' ? 3500 : 1800, t + 0.08); f.connect(this.master);
+          this.osc('sawtooth', freq * (instrument === 'trumpet' ? 2 : 1), t, dur, 0.18, f, 0.03); break; }
+        case 'sax': this.vibrato(this.osc('square', freq * 2, t, dur, 0.1, this.lp(1600), 0.03), t, dur, 5, 5); this.osc('sawtooth', freq * 2, t, dur, 0.05, this.lp(1200), 0.03); break;
+        case 'dj': {   // a record scratch that lands on the note
+          const o = this.osc('square', freq * 2, t, dur * 0.6, 0.1, this.lp(2000), 0.002);
+          o.frequency.setValueAtTime(freq * 3, t); o.frequency.exponentialRampToValueAtTime(freq * 2, t + 0.06); this.noiseHit(t, 'bandpass', 1800, 0.12, 0.06); break; }
         default: { // guitar: distorted lead
           const g = this.ac.createGain(), sh = this.distortion(), f = this.ac.createBiquadFilter();
           f.type = 'lowpass'; f.frequency.value = 3200; this.env(g, t, 0.005, 0.16, dur);
@@ -307,7 +329,8 @@ const Stage = (() => {
       const keys = drums ? DRUM_LANES[diff].map(k => k[0]) : LANES[diff].split('');
       const labels = drums ? DRUM_LANES[diff].map(k => PIECE_NAME[k[1]]) : keys.map((_, i) => i === 0 ? 'Low' : i === keys.length - 1 ? 'High' : '');
       const raw = drums ? drumChart(chart, diff) : melodyChart(chart, diff, instrument);
-      const icon = { guitar: '🎸', bass: '🎸', keys: '🎹', drums: '🥁', violin: '🎻', vocals: '🎤' }[instrument] || '🎸';
+      const icon = { guitar: '🎸', bass: '🎸', keys: '🎹', synth: '🎹', piano: '🎹', accordion: '🪗', drums: '🥁', violin: '🎻', cello: '🎻', harp: '🎶', sitar: '🎶', banjo: '🪕',
+        vocals: '🎤', harmonica: '🎶', trombone: '🎺', trumpet: '🎺', sax: '🎷', dj: '🎧' }[instrument] || '🎸';
       const partName = drums ? 'Drum part' : instrument === 'vocals' ? 'Vocal melody' : instrument[0].toUpperCase() + instrument.slice(1) + ' part';
 
       container.innerHTML = `<div class="notes-game" role="application" aria-roledescription="instrument rhythm game">

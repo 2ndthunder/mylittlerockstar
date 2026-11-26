@@ -26,6 +26,19 @@ async function api(action, data = {}, { quiet = false } = {}) {
 }
 
 /* ================================================================ feedback */
+/** Which synth voice and note-highway part a look plays: the instrument type, refined by model (banjo, cello, sax…). */
+function voiceOf(look) {
+  const t = look?.instrument?.type || 'guitar', m = look?.instrument?.model;
+  if (t === 'horns') return ['sax', 'trumpet'].includes(m) ? m : 'trombone';
+  if (t === 'dj') return 'dj';
+  if (t === 'drums') return 'drums';
+  if (t === 'guitar' && m === 'banjo') return 'banjo';
+  if (t === 'violin' && ['cello', 'harp', 'sitar'].includes(m)) return m;
+  if (t === 'keys' && ['synth', 'piano', 'accordion'].includes(m)) return m;
+  if (t === 'vocals' && m === 'harmonica') return 'harmonica';
+  return t;
+}
+
 function announce(t) { const a = $('#announcer'); a.textContent = ''; setTimeout(() => (a.textContent = t), 40); }
 function toast(t, kind = 'good') {
   const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = t; $('#toasts').append(el); announce(t);
@@ -182,7 +195,7 @@ async function runPractice(skill) {
   let start; try { start = await api('practice_start', { skill }, {}); } catch { return; }
   const o = overlay(performanceScreen('garage.jpg', 'Practice: ' + G.game.skills[skill], false));
   const part = skill === 'vocals' || skill === 'songwriting' || skill === 'charisma' ? 'lyrics' : undefined;
-  const result = await Stage.play($('.perf-typer', o), start.chart, { label: 'Practice drill', part, instrument: R().instrument, onHit: k => avatarReact(o, k) });
+  const result = await Stage.play($('.perf-typer', o), start.chart, { label: 'Practice drill', part, instrument: voiceOf(R().appearance), onHit: k => avatarReact(o, k) });
   closeOverlay();
   if (!result) { toast('Practice stopped.', 'bad'); return; }
   try { await api('practice_finish', { token: start.token, result }); render(); } catch {}
@@ -263,7 +276,7 @@ function writeSongDialog() {
 async function runLearn(songId) {
   let start; try { start = await api('learn_start', { song: songId }); } catch { return; }
   const o = overlay(performanceScreen('garage.jpg', 'Learning: ' + start.charts[0].title, false));
-  const result = await Stage.play($('.perf-typer', o), start.charts[0], { label: `Score ${G.game.costs.learnAcc}%+ to learn it`, instrument: R().instrument, onHit: k => avatarReact(o, k) });
+  const result = await Stage.play($('.perf-typer', o), start.charts[0], { label: `Score ${G.game.costs.learnAcc}%+ to learn it`, instrument: voiceOf(R().appearance), onHit: k => avatarReact(o, k) });
   closeOverlay();
   if (!result) { toast('Stopped.', 'bad'); return; }
   try { await api('learn_finish', { token: start.token, result }); render(); } catch {}
@@ -274,7 +287,7 @@ async function runRehearsal(ids) {
   const o = overlay(performanceScreen('garage.jpg', 'Band rehearsal', false));
   const results = [];
   for (let i = 0; i < start.charts.length; i++) {
-    const res = await Stage.play($('.perf-typer', o), start.charts[i], { label: `Song ${i + 1} of ${start.charts.length}`, instrument: R().instrument, onHit: k => avatarReact(o, k) });
+    const res = await Stage.play($('.perf-typer', o), start.charts[i], { label: `Song ${i + 1} of ${start.charts.length}`, instrument: voiceOf(R().appearance), onHit: k => avatarReact(o, k) });
     if (!res) { closeOverlay(); toast('Rehearsal stopped.', 'bad'); return; }
     results.push(res);
   }
@@ -366,7 +379,7 @@ async function runGig(venueKey, ids, modes) {
       results.push(null);
     } else {
       const res = await Stage.play($('.perf-typer', o), start.charts[i], {
-        label, instrument: r.instrument,
+        label, instrument: voiceOf(r.appearance),
         onHype: h => { hypeBar.style.width = h + '%'; o.querySelector('.crowd')?.style.setProperty('--hype', (h / 100).toFixed(2)); },
         onHit: k => avatarReact(o, k),
       });

@@ -222,6 +222,20 @@ test('outfit presets save, validate and delete', function () {
     act_delete_preset($r, 0); eq(count(presets_of((int)$r['id'])), 0);
 });
 
+test('every starter archetype builds a renderable look; recruits use them', function () {
+    $roles = array_keys(BAND_ROLES);
+    foreach (looks()['archetypes'] as $ar) {
+        ok(in_array($ar['instrument'], $roles, true), "{$ar['id']} has a band role");
+        $look = archetype_appearance($ar['id'], 7);
+        eq($look['instrument']['type'], $ar['instrument']);
+        // only shop/fame locks may fail validation — never an unknown item
+        try { clean_appearance($look, [], 10 ** 9, true); }
+        catch (GameError $e) { ok(str_contains($e->getMessage(), 'shop item'), "{$ar['id']}: " . $e->getMessage()); }
+    }
+    foreach ($roles as $r) { $l = random_appearance($r, 1234); eq($l['instrument']['type'], $r); }
+    ok(count(archetypes_for('horns')) >= 2, 'horn archetypes');
+});
+
 /* ================================================================== runner */
 
 foreach ($GLOBALS['tests'] as [$name, $fn]) {

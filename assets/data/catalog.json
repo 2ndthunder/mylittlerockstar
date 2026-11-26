@@ -333,6 +333,12 @@
     "name": "Half mask",
     "price": 80,
     "fame": 500
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "glamstar",
+    "name": "Glam star"
    }
   ]
  },
@@ -448,6 +454,48 @@
   {
    "id": "spiky",
    "name": "Wild spikes"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "afro",
+   "name": "Afro"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "puff",
+   "name": "Afro puff"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "updo",
+   "name": "Beehive updo"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "swept",
+   "name": "Side swoop"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "shag",
+   "name": "Curly shag"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "bangs",
+   "name": "Straight with bangs"
+  },
+  {
+   "price": 0,
+   "fame": 0,
+   "id": "fade",
+   "name": "Hi-top fade"
   }
  ],
  "facialHair": [
@@ -478,6 +526,10 @@
   {
    "id": "soulpatch",
    "name": "Soul patch"
+  },
+  {
+   "id": "bigbeard",
+   "name": "Big bushy beard"
   }
  ],
  "patterns": [
@@ -512,6 +564,34 @@
   {
    "id": "stars",
    "name": "Stars"
+  },
+  {
+   "id": "camo",
+   "name": "Camo"
+  },
+  {
+   "id": "cord",
+   "name": "Corduroy"
+  },
+  {
+   "id": "pinstripe",
+   "name": "Pinstripe"
+  },
+  {
+   "id": "sparkle",
+   "name": "Sparkle"
+  },
+  {
+   "id": "zebra",
+   "name": "Zebra"
+  },
+  {
+   "id": "floral",
+   "name": "Hawaiian floral"
+  },
+  {
+   "id": "psychedelic",
+   "name": "Psychedelic swirl"
   }
  ],
  "outfit": {
@@ -614,6 +694,20 @@
     "sleeve": "short",
     "price": 140,
     "fame": 500
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "collar",
+    "name": "Open-collar shirt",
+    "sleeve": "short"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "sleeveless",
+    "name": "Cut-off tee",
+    "sleeve": "none"
    }
   ],
   "bottom": [
@@ -686,6 +780,36 @@
     "price": 70,
     "fame": 100,
     "cover": "skirt"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "overalls",
+    "name": "Overalls"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "trackpants",
+    "name": "Track pants"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "patched",
+    "name": "Patched jeans"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "gown",
+    "name": "Ball gown"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "harem",
+    "name": "Harem pants"
    }
   ],
   "legwear": [
@@ -712,6 +836,12 @@
     "name": "Striped socks",
     "price": 0,
     "fame": 0
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "socks",
+    "name": "Tube socks"
    }
   ],
   "shoes": [
@@ -756,6 +886,24 @@
     "name": "Platform boots",
     "price": 120,
     "fame": 500
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "sandals",
+    "name": "Sandals"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "moonboots",
+    "name": "Glow boots"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "curled",
+    "name": "Curled slippers"
    }
   ],
   "outer": [
@@ -813,6 +961,69 @@
     "price": 400,
     "fame": 2000,
     "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "cardigan",
+    "name": "Cardigan",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "glam",
+    "name": "Glam jacket",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "track",
+    "name": "Track jacket",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "tech",
+    "name": "Tech jacket",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "waistcoat",
+    "name": "Waistcoat",
+    "sleeve": "none"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "cropjacket",
+    "name": "Cropped jacket",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "overshirt",
+    "name": "Open overshirt",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "uniform",
+    "name": "Marching uniform",
+    "sleeve": "long"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "fringe",
+    "name": "Fringe jacket",
+    "sleeve": "long"
    }
   ],
   "hat": [
@@ -863,6 +1074,54 @@
     "name": "Crown",
     "price": 1000,
     "fame": 25000
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "porkpie",
+    "name": "Pork pie"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "tam",
+    "name": "Rasta tam"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "straw",
+    "name": "Straw hat"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "trucker",
+    "name": "Trucker cap"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "backcap",
+    "name": "Backwards cap"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "headphones",
+    "name": "Headphones"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "shako",
+    "name": "Marching shako"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "turban",
+    "name": "Turban"
    }
   ],
   "glasses": [
@@ -907,6 +1166,12 @@
     "name": "Cyber visor",
     "price": 150,
     "fame": 2000
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "square",
+    "name": "Square shades"
    }
   ],
   "neck": [
@@ -951,6 +1216,18 @@
     "name": "Bow tie",
     "price": 30,
     "fame": 100
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "tie",
+    "name": "Skinny tie"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "medallion",
+    "name": "Gold medallion"
    }
   ],
   "wrist": [
@@ -981,6 +1258,18 @@
    {
     "id": "gloves",
     "name": "Fingerless gloves"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "fullgloves",
+    "name": "Gloves"
+   },
+   {
+    "price": 0,
+    "fame": 0,
+    "id": "longgloves",
+    "name": "Opera gloves"
    }
   ],
   "belt": [
@@ -1206,6 +1495,18 @@
      "name": "Star body",
      "price": 300,
      "fame": 2000
+    },
+    {
+     "id": "banjo",
+     "name": "Banjo",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "offset",
+     "name": "Offset surf guitar",
+     "price": 0,
+     "fame": 0
     }
    ]
   },
@@ -1248,11 +1549,23 @@
      "name": "Glow sticks",
      "price": 120,
      "fame": 500
+    },
+    {
+     "id": "marching",
+     "name": "Marching snare",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "electronic",
+     "name": "Electronic pads",
+     "price": 350,
+     "fame": 600
     }
    ]
   },
   "keys": {
-   "name": "Keytar",
+   "name": "Keys",
    "role": "Keys",
    "models": [
     {
@@ -1266,6 +1579,24 @@
      "name": "Retro synth keytar",
      "price": 180,
      "fame": 500
+    },
+    {
+     "id": "synth",
+     "name": "Synth on a stand",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "accordion",
+     "name": "Accordion",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "piano",
+     "name": "Upright piano",
+     "price": 500,
+     "fame": 1500
     }
    ]
   },
@@ -1290,11 +1621,23 @@
      "name": "Mic stand",
      "price": 0,
      "fame": 0
+    },
+    {
+     "id": "vintagestand",
+     "name": "Vintage mic on a stand",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "harmonica",
+     "name": "Harmonica",
+     "price": 0,
+     "fame": 0
     }
    ]
   },
   "violin": {
-   "name": "Violin",
+   "name": "Strings",
    "role": "Strings",
    "models": [
     {
@@ -1308,6 +1651,66 @@
      "name": "Electric violin",
      "price": 220,
      "fame": 500
+    },
+    {
+     "id": "cello",
+     "name": "Cello",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "sitar",
+     "name": "Sitar",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "harp",
+     "name": "Harp",
+     "price": 400,
+     "fame": 800
+    }
+   ]
+  },
+  "horns": {
+   "name": "Horns",
+   "role": "Horns",
+   "models": [
+    {
+     "id": "trombone",
+     "name": "Trombone",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "sax",
+     "name": "Saxophone",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "trumpet",
+     "name": "Trumpet",
+     "price": 0,
+     "fame": 0
+    }
+   ]
+  },
+  "dj": {
+   "name": "DJ gear",
+   "role": "DJ",
+   "models": [
+    {
+     "id": "decks",
+     "name": "Turntables",
+     "price": 0,
+     "fame": 0
+    },
+    {
+     "id": "boombox",
+     "name": "Boombox",
+     "price": 0,
+     "fame": 0
     }
    ]
   },
@@ -1434,5 +1837,1670 @@
    }
   ]
  },
- "presetsMax": 6
+ "presetsMax": 6,
+ "archetypes": [
+  {
+   "id": "punk",
+   "name": "The Punk",
+   "instrument": "guitar",
+   "look": {
+    "build": "slim",
+    "skin": "#f6cfb2",
+    "stance": "wide",
+    "face": {
+     "shape": "pointed",
+     "eyes": "toon",
+     "eyeColor": "#7b3fa0",
+     "brows": "slab",
+     "nose": "triangle",
+     "mouth": "fangs",
+     "browTilt": 28,
+     "eyeSize": 20,
+     "mouthWidth": 15
+    },
+    "hair": {
+     "style": "spiky",
+     "color": "#a64dff"
+    },
+    "outfit": {
+     "top": {
+      "id": "tee",
+      "color": "#4b2a6b"
+     },
+     "outer": {
+      "id": "studvest",
+      "color": "#121216"
+     },
+     "bottom": {
+      "id": "cargo",
+      "color": "#6b6e70",
+      "fit": "baggy"
+     },
+     "shoes": {
+      "id": "hightops",
+      "color": "#2a2833"
+     },
+     "wrist": {
+      "id": "gloves",
+      "color": "#141014"
+     },
+     "belt": {
+      "id": "chain",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "guitar",
+     "model": "vee",
+     "color": "#9b72c8",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "chillbass",
+   "name": "The Chill Bassist",
+   "instrument": "bass",
+   "look": {
+    "build": "average",
+    "skin": "#a8693d",
+    "stance": "relaxed",
+    "face": {
+     "shape": "long",
+     "eyes": "toonlid",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "button",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "long",
+     "color": "#2a1a10"
+    },
+    "outfit": {
+     "top": {
+      "id": "hoodie",
+      "color": "#2f4a46",
+      "fit": "baggy"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#3e5f8a",
+      "fit": "baggy"
+     },
+     "shoes": {
+      "id": "sneakers",
+      "color": "#8a2a2a"
+     },
+     "hat": {
+      "id": "beanie",
+      "color": "#7a5a3a"
+     }
+    },
+    "instrument": {
+     "type": "bass",
+     "model": "classic",
+     "color": "#6b3e22",
+     "finish": "sunburst"
+    }
+   }
+  },
+  {
+   "id": "energydrum",
+   "name": "The Energy Drummer",
+   "instrument": "drums",
+   "look": {
+    "build": "athletic",
+    "skin": "#f6cfb2",
+    "stance": "power",
+    "face": {
+     "shape": "round",
+     "eyes": "toon",
+     "eyeColor": "#3b74b8",
+     "brows": "angry",
+     "nose": "button",
+     "mouth": "grin",
+     "marks": "freckles",
+     "browTilt": 20
+    },
+    "hair": {
+     "style": "shag",
+     "color": "#ff7a1a"
+    },
+    "outfit": {
+     "top": {
+      "id": "tee",
+      "color": "#3a3a40"
+     },
+     "bottom": {
+      "id": "shorts",
+      "color": "#3e5a66"
+     },
+     "legwear": {
+      "id": "socks",
+      "color": "#f2f2f2"
+     },
+     "shoes": {
+      "id": "sneakers",
+      "color": "#2a2833"
+     },
+     "wrist": {
+      "id": "sweatband",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "drums",
+     "model": "classic",
+     "color": "#b3121f",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "gothkeys",
+   "name": "The Goth Keyboardist",
+   "instrument": "keys",
+   "look": {
+    "build": "slim",
+    "skin": "#fde3d0",
+    "stance": "relaxed",
+    "face": {
+     "shape": "oval",
+     "eyes": "toonlid",
+     "eyeColor": "#7a8a99",
+     "brows": "thin",
+     "nose": "small",
+     "mouth": "neutral"
+    },
+    "hair": {
+     "style": "bangs",
+     "color": "#16120f"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#4b0d1f",
+     "lips": "#121216",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "turtleneck",
+      "color": "#121216"
+     },
+     "outer": {
+      "id": "trench",
+      "color": "#1d1a22"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#121216"
+     },
+     "legwear": {
+      "id": "tights",
+      "color": "#121216"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#121216"
+     },
+     "neck": {
+      "id": "choker",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "keys",
+     "model": "synth",
+     "color": "#2a2433",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "popstar",
+   "name": "The Pop Star",
+   "instrument": "vocals",
+   "look": {
+    "build": "curvy",
+    "skin": "#c4834f",
+    "stance": "wide",
+    "face": {
+     "shape": "heart",
+     "eyes": "toon",
+     "eyeColor": "#7b3fa0",
+     "brows": "arched",
+     "nose": "button",
+     "mouth": "grin",
+     "eyeSize": 15
+    },
+    "hair": {
+     "style": "pigtails",
+     "color": "#6b2a3a",
+     "color2": "#ffd23f"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#ff3b6b",
+     "lips": "#ff4d8b",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "crop",
+      "color": "#ffcc1a"
+     },
+     "outer": {
+      "id": "cropjacket",
+      "color": "#3d6bff",
+      "pattern": "sparkle",
+      "color2": "#ff3b6b"
+     },
+     "bottom": {
+      "id": "skirt",
+      "color": "#19c2c9"
+     },
+     "legwear": {
+      "id": "tights",
+      "color": "#121216"
+     },
+     "shoes": {
+      "id": "hightops",
+      "color": "#ff3b6b"
+     }
+    },
+    "piercings": [
+     "ear"
+    ],
+    "instrument": {
+     "type": "vocals",
+     "model": "handheld",
+     "color": "#ff3b6b",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "metalhead",
+   "name": "The Metalhead",
+   "instrument": "guitar",
+   "look": {
+    "build": "broad",
+    "skin": "#eab48f",
+    "stance": "power",
+    "face": {
+     "shape": "square",
+     "eyes": "toonlid",
+     "eyeColor": "#3b2414",
+     "brows": "slab",
+     "nose": "straight",
+     "mouth": "snarl",
+     "browTilt": 40
+    },
+    "hair": {
+     "style": "hairmetal",
+     "color": "#2a1a10"
+    },
+    "outfit": {
+     "top": {
+      "id": "tee",
+      "color": "#121216",
+      "print": "DOOM"
+     },
+     "outer": {
+      "id": "studvest",
+      "color": "#121216"
+     },
+     "bottom": {
+      "id": "ripped",
+      "color": "#3a4a5c"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#121216"
+     },
+     "wrist": {
+      "id": "spiked",
+      "color": "#121216"
+     },
+     "belt": {
+      "id": "chain",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "guitar",
+     "model": "vee",
+     "color": "#7d3cff",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "folkmulti",
+   "name": "The Folk Multi-instrumentalist",
+   "instrument": "guitar",
+   "look": {
+    "build": "average",
+    "skin": "#eab48f",
+    "stance": "relaxed",
+    "face": {
+     "shape": "square",
+     "eyes": "toon",
+     "eyeColor": "#2f6f3e",
+     "brows": "thick",
+     "nose": "straight",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "messy",
+     "color": "#6b3e22",
+     "facial": "beard"
+    },
+    "outfit": {
+     "top": {
+      "id": "buttonup",
+      "color": "#b3121f",
+      "pattern": "plaid",
+      "color2": "#121216"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#3e5f8a"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#6b4a2b"
+     }
+    },
+    "instrument": {
+     "type": "guitar",
+     "model": "acoustic",
+     "color": "#c9a77c",
+     "finish": "matte"
+    }
+   }
+  },
+  {
+   "id": "funksax",
+   "name": "The Funky Saxophonist",
+   "instrument": "horns",
+   "look": {
+    "build": "average",
+    "skin": "#6f4024",
+    "stance": "wide",
+    "face": {
+     "shape": "round",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "wide",
+     "mouth": "grin"
+    },
+    "hair": {
+     "style": "afro",
+     "color": "#2a1a10"
+    },
+    "outfit": {
+     "top": {
+      "id": "collar",
+      "color": "#7d3cff",
+      "pattern": "psychedelic",
+      "color2": "#ff7a1a"
+     },
+     "bottom": {
+      "id": "flares",
+      "color": "#3e5f8a"
+     },
+     "shoes": {
+      "id": "platforms",
+      "color": "#5a3b26"
+     },
+     "glasses": {
+      "id": "square",
+      "color": "#ffcc1a"
+     }
+    },
+    "instrument": {
+     "type": "horns",
+     "model": "sax",
+     "color": "#e3b23c",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "skaterdj",
+   "name": "The Skater DJ",
+   "instrument": "dj",
+   "look": {
+    "build": "slim",
+    "skin": "#f6cfb2",
+    "stance": "relaxed",
+    "face": {
+     "shape": "oval",
+     "eyes": "toonlid",
+     "eyeColor": "#6b4423",
+     "brows": "soft",
+     "nose": "button",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "messy",
+     "color": "#6b3e22"
+    },
+    "outfit": {
+     "top": {
+      "id": "hoodie",
+      "color": "#2b2342",
+      "fit": "baggy"
+     },
+     "bottom": {
+      "id": "cargo",
+      "color": "#4f6b3a",
+      "fit": "baggy"
+     },
+     "shoes": {
+      "id": "sneakers",
+      "color": "#5a3b6b"
+     },
+     "hat": {
+      "id": "backcap",
+      "color": "#3d4f7a"
+     }
+    },
+    "instrument": {
+     "type": "dj",
+     "model": "decks",
+     "color": "#2453ff",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "keytarist",
+   "name": "The Eccentric Keytarist",
+   "instrument": "keys",
+   "look": {
+    "build": "slim",
+    "skin": "#f6cfb2",
+    "stance": "power",
+    "face": {
+     "shape": "pointed",
+     "eyes": "toon",
+     "eyeColor": "#2f6f3e",
+     "brows": "angry",
+     "nose": "pointed",
+     "mouth": "fangs",
+     "browTilt": 15
+    },
+    "hair": {
+     "style": "swept",
+     "color": "#19c2c9"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#7d3cff",
+     "lips": "",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "mesh",
+      "color": "#13a8c4"
+     },
+     "outer": {
+      "id": "waistcoat",
+      "color": "#c0c5cc",
+      "pattern": "sparkle",
+      "color2": "#13a8c4"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#7d3cff"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#3a6a6a"
+     },
+     "wrist": {
+      "id": "gloves",
+      "color": "#3a5a5a"
+     }
+    },
+    "piercings": [
+     "ear",
+     "brow"
+    ],
+    "instrument": {
+     "type": "keys",
+     "model": "classic",
+     "color": "#3a5a5a",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "glam",
+   "name": "The Glam Rocker",
+   "instrument": "guitar",
+   "look": {
+    "build": "slim",
+    "skin": "#fde3d0",
+    "stance": "wide",
+    "face": {
+     "shape": "oval",
+     "eyes": "toonlid",
+     "eyeColor": "#3b74b8",
+     "brows": "thin",
+     "nose": "small",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "hairmetal",
+     "color": "#ff7a1a"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "",
+     "lips": "#c0262d",
+     "paint": "glamstar",
+     "paintColor": "#ffcc1a"
+    },
+    "outfit": {
+     "top": {
+      "id": "none",
+      "color": "#121216"
+     },
+     "outer": {
+      "id": "glam",
+      "color": "#ffcc1a",
+      "pattern": "sparkle",
+      "color2": "#ff7a1a"
+     },
+     "bottom": {
+      "id": "flares",
+      "color": "#ffcc1a",
+      "pattern": "stripes",
+      "color2": "#c0262d"
+     },
+     "shoes": {
+      "id": "platforms",
+      "color": "#c0c5cc"
+     },
+     "neck": {
+      "id": "chain",
+      "color": "#e3b23c"
+     }
+    },
+    "instrument": {
+     "type": "guitar",
+     "model": "vee",
+     "color": "#ff3b30",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "indiecello",
+   "name": "The Indie Cellist",
+   "instrument": "violin",
+   "look": {
+    "build": "slim",
+    "skin": "#f6cfb2",
+    "stance": "relaxed",
+    "face": {
+     "shape": "round",
+     "eyes": "toon",
+     "eyeColor": "#6b4423",
+     "brows": "soft",
+     "nose": "button",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "bun",
+     "color": "#19a2a9"
+    },
+    "outfit": {
+     "top": {
+      "id": "tee",
+      "color": "#f1e6c8"
+     },
+     "outer": {
+      "id": "cardigan",
+      "color": "#e0a92c",
+      "fit": "baggy"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#6b3e22",
+      "pattern": "cord",
+      "fit": "regular"
+     },
+     "shoes": {
+      "id": "sneakers",
+      "color": "#5a3b26"
+     },
+     "glasses": {
+      "id": "round",
+      "color": "#3a2418"
+     }
+    },
+    "instrument": {
+     "type": "violin",
+     "model": "cello",
+     "color": "#7a3b16",
+     "finish": "sunburst"
+    }
+   }
+  },
+  {
+   "id": "ska",
+   "name": "The Ska Trombonist",
+   "instrument": "horns",
+   "look": {
+    "build": "slim",
+    "skin": "#eab48f",
+    "stance": "relaxed",
+    "face": {
+     "shape": "oval",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "straight",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "buzz",
+     "color": "#16120f"
+    },
+    "outfit": {
+     "top": {
+      "id": "buttonup",
+      "color": "#f2f2f2"
+     },
+     "outer": {
+      "id": "waistcoat",
+      "color": "#f2f2f2",
+      "pattern": "checker",
+      "color2": "#121216"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#121216"
+     },
+     "shoes": {
+      "id": "creepers",
+      "color": "#121216"
+     },
+     "hat": {
+      "id": "porkpie",
+      "color": "#3a3a40"
+     },
+     "neck": {
+      "id": "tie",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "horns",
+     "model": "trombone",
+     "color": "#e3b23c",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "scifi",
+   "name": "The Sci-fi Synthist",
+   "instrument": "keys",
+   "look": {
+    "build": "slim",
+    "skin": "#c4834f",
+    "stance": "wide",
+    "face": {
+     "shape": "oval",
+     "eyes": "toon",
+     "eyeColor": "#7b3fa0",
+     "brows": "thin",
+     "nose": "small",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "locs",
+     "color": "#ff4d8b"
+    },
+    "makeup": {
+     "liner": false,
+     "shadow": "",
+     "lips": "#7d3cff",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "turtleneck",
+      "color": "#1d2a4d"
+     },
+     "outer": {
+      "id": "tech",
+      "color": "#c0c5cc",
+      "color2": "#29e0e0"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#1d2a4d"
+     },
+     "shoes": {
+      "id": "moonboots",
+      "color": "#9adfe8",
+      "color2": "#ff4d8b"
+     },
+     "glasses": {
+      "id": "visor",
+      "color": "#29b6f6"
+     },
+     "wrist": {
+      "id": "fullgloves",
+      "color": "#7d3cff"
+     }
+    },
+    "instrument": {
+     "type": "keys",
+     "model": "synth",
+     "color": "#13a8c4",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "reggae",
+   "name": "The Reggae Bassist",
+   "instrument": "bass",
+   "look": {
+    "build": "slim",
+    "skin": "#8d5530",
+    "stance": "relaxed",
+    "face": {
+     "shape": "long",
+     "eyes": "toonlid",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "wide",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "locs",
+     "color": "#2a1a10",
+     "facial": "goatee"
+    },
+    "outfit": {
+     "top": {
+      "id": "collar",
+      "color": "#7aa33a",
+      "fit": "baggy"
+     },
+     "bottom": {
+      "id": "patched",
+      "color": "#4a6fa5",
+      "fit": "baggy"
+     },
+     "shoes": {
+      "id": "sandals",
+      "color": "#6b4a2b"
+     },
+     "hat": {
+      "id": "tam",
+      "color": "#2f9e44",
+      "color2": "#d62828"
+     },
+     "wrist": {
+      "id": "bracelets",
+      "color": "#2f9e44"
+     }
+    },
+    "instrument": {
+     "type": "bass",
+     "model": "classic",
+     "color": "#1f8f4e",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "speedmetal",
+   "name": "The Speed Metal Drummer",
+   "instrument": "drums",
+   "look": {
+    "build": "heavy",
+    "skin": "#eab48f",
+    "stance": "power",
+    "face": {
+     "shape": "square",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "slab",
+     "nose": "straight",
+     "mouth": "snarl",
+     "browTilt": 45
+    },
+    "hair": {
+     "style": "long",
+     "color": "#16120f",
+     "facial": "bigbeard"
+    },
+    "outfit": {
+     "top": {
+      "id": "sleeveless",
+      "color": "#6b6e70"
+     },
+     "bottom": {
+      "id": "ripped",
+      "color": "#3a4a5c"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#4a4a32"
+     },
+     "hat": {
+      "id": "trucker",
+      "color": "#4f6b3a",
+      "pattern": "camo",
+      "color2": "#2d3a22"
+     },
+     "wrist": {
+      "id": "sweatband",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "drums",
+     "model": "classic",
+     "color": "#7a1d2c",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "opera",
+   "name": "The Operatic Vocalist",
+   "instrument": "vocals",
+   "look": {
+    "build": "curvy",
+    "skin": "#fde3d0",
+    "stance": "relaxed",
+    "face": {
+     "shape": "heart",
+     "eyes": "toonlid",
+     "eyeColor": "#7b3fa0",
+     "brows": "arched",
+     "nose": "small",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "updo",
+     "color": "#b38ae6"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#7d3cff",
+     "lips": "#7d3cff",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "corset",
+      "color": "#2b1338"
+     },
+     "bottom": {
+      "id": "gown",
+      "color": "#4b1f6b"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#121216"
+     },
+     "neck": {
+      "id": "choker",
+      "color": "#121216"
+     },
+     "wrist": {
+      "id": "longgloves",
+      "color": "#3a1d4f"
+     }
+    },
+    "piercings": [
+     "ear"
+    ],
+    "instrument": {
+     "type": "vocals",
+     "model": "vintagestand",
+     "color": "#c9ced8",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "banjo",
+   "name": "The Folk Banjoist",
+   "instrument": "guitar",
+   "look": {
+    "build": "average",
+    "skin": "#eab48f",
+    "stance": "relaxed",
+    "height": 0.96,
+    "face": {
+     "shape": "round",
+     "eyes": "toon",
+     "eyeColor": "#3b74b8",
+     "brows": "thick",
+     "nose": "button",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "messy",
+     "color": "#e9e6e1",
+     "facial": "bigbeard"
+    },
+    "outfit": {
+     "top": {
+      "id": "buttonup",
+      "color": "#b3121f",
+      "pattern": "plaid",
+      "color2": "#3a2418"
+     },
+     "bottom": {
+      "id": "overalls",
+      "color": "#4a6fa5"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#6b4a2b"
+     },
+     "hat": {
+      "id": "straw",
+      "color": "#3a2418"
+     }
+    },
+    "instrument": {
+     "type": "guitar",
+     "model": "banjo",
+     "color": "#6b3e22",
+     "finish": "matte"
+    }
+   }
+  },
+  {
+   "id": "hiphop",
+   "name": "The Hip Hop MC",
+   "instrument": "dj",
+   "look": {
+    "build": "average",
+    "skin": "#6f4024",
+    "stance": "wide",
+    "face": {
+     "shape": "round",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "wide",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "puff",
+     "color": "#16120f",
+     "color2": "#c0262d"
+    },
+    "outfit": {
+     "top": {
+      "id": "tee",
+      "color": "#f2f2f2"
+     },
+     "outer": {
+      "id": "track",
+      "color": "#c0262d"
+     },
+     "bottom": {
+      "id": "trackpants",
+      "color": "#c0262d",
+      "fit": "baggy"
+     },
+     "shoes": {
+      "id": "hightops",
+      "color": "#c0262d"
+     },
+     "neck": {
+      "id": "medallion",
+      "color": "#e3b23c"
+     }
+    },
+    "piercings": [
+     "ear"
+    ],
+    "instrument": {
+     "type": "dj",
+     "model": "boombox",
+     "color": "#2b2b33",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "punkaccordion",
+   "name": "The Punk Accordionist",
+   "instrument": "keys",
+   "look": {
+    "build": "slim",
+    "skin": "#f6cfb2",
+    "stance": "wide",
+    "face": {
+     "shape": "pointed",
+     "eyes": "toon",
+     "eyeColor": "#2f6f3e",
+     "brows": "angry",
+     "nose": "straight",
+     "mouth": "smirk",
+     "browTilt": 25
+    },
+    "hair": {
+     "style": "mohawk",
+     "color": "#7cff3b"
+    },
+    "outfit": {
+     "top": {
+      "id": "tee",
+      "color": "#f2f2f2",
+      "pattern": "stripes",
+      "color2": "#121216"
+     },
+     "outer": {
+      "id": "leather",
+      "color": "#1d1a22"
+     },
+     "bottom": {
+      "id": "kilt",
+      "color": "#b3121f",
+      "pattern": "plaid",
+      "color2": "#1f8f4e"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#121216"
+     },
+     "wrist": {
+      "id": "gloves",
+      "color": "#121216"
+     },
+     "belt": {
+      "id": "studded",
+      "color": "#121216"
+     }
+    },
+    "piercings": [
+     "ear",
+     "nose"
+    ],
+    "instrument": {
+     "type": "keys",
+     "model": "accordion",
+     "color": "#d6334a",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "surf",
+   "name": "The Surf Rocker",
+   "instrument": "guitar",
+   "look": {
+    "build": "slim",
+    "skin": "#eab48f",
+    "stance": "relaxed",
+    "face": {
+     "shape": "oval",
+     "eyes": "toon",
+     "eyeColor": "#3b74b8",
+     "brows": "soft",
+     "nose": "button",
+     "mouth": "grin"
+    },
+    "hair": {
+     "style": "wavy",
+     "color": "#f1dc9b"
+    },
+    "outfit": {
+     "top": {
+      "id": "collar",
+      "color": "#2a9d8f",
+      "pattern": "floral",
+      "color2": "#ffd23f"
+     },
+     "bottom": {
+      "id": "shorts",
+      "color": "#3e5a66"
+     },
+     "shoes": {
+      "id": "sandals",
+      "color": "#2a2a2a"
+     }
+    },
+    "instrument": {
+     "type": "guitar",
+     "model": "offset",
+     "color": "#2a9d8f",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "country",
+   "name": "The Country Fiddler",
+   "instrument": "violin",
+   "look": {
+    "build": "average",
+    "skin": "#eab48f",
+    "stance": "relaxed",
+    "face": {
+     "shape": "square",
+     "eyes": "toon",
+     "eyeColor": "#6b4423",
+     "brows": "thick",
+     "nose": "straight",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "messy",
+     "color": "#6b3e22"
+    },
+    "outfit": {
+     "top": {
+      "id": "buttonup",
+      "color": "#b3121f",
+      "pattern": "plaid",
+      "color2": "#f2f2f2"
+     },
+     "outer": {
+      "id": "fringe",
+      "color": "#c9a77c"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#3e5f8a"
+     },
+     "shoes": {
+      "id": "cowboy",
+      "color": "#6b3e22"
+     },
+     "hat": {
+      "id": "cowboy",
+      "color": "#c9a77c"
+     },
+     "belt": {
+      "id": "none",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "violin",
+     "model": "classic",
+     "color": "#8a3b12",
+     "finish": "sunburst"
+    }
+   }
+  },
+  {
+   "id": "disco",
+   "name": "The Disco Bassist",
+   "instrument": "bass",
+   "look": {
+    "build": "curvy",
+    "skin": "#8d5530",
+    "stance": "wide",
+    "face": {
+     "shape": "heart",
+     "eyes": "toonlid",
+     "eyeColor": "#3b2414",
+     "brows": "arched",
+     "nose": "button",
+     "mouth": "grin"
+    },
+    "hair": {
+     "style": "afro",
+     "color": "#2a1a10"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#13a8c4",
+     "lips": "#b04a5a",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "longsleeve",
+      "color": "#8fb3e8",
+      "pattern": "sparkle",
+      "color2": "#ffffff"
+     },
+     "bottom": {
+      "id": "flares",
+      "color": "#8fb3e8",
+      "pattern": "sparkle",
+      "color2": "#ffffff"
+     },
+     "shoes": {
+      "id": "platforms",
+      "color": "#f2f2f2"
+     }
+    },
+    "piercings": [
+     "ear"
+    ],
+    "instrument": {
+     "type": "bass",
+     "model": "pshape",
+     "color": "#c0c5cc",
+     "finish": "chrome"
+    }
+   }
+  },
+  {
+   "id": "gothharp",
+   "name": "The Gothic Harpist",
+   "instrument": "violin",
+   "look": {
+    "build": "slim",
+    "skin": "#fde3d0",
+    "stance": "relaxed",
+    "face": {
+     "shape": "oval",
+     "eyes": "toonlid",
+     "eyeColor": "#7b3fa0",
+     "brows": "arched",
+     "nose": "small",
+     "mouth": "neutral"
+    },
+    "hair": {
+     "style": "updo",
+     "color": "#4b1f6b"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#4b0d1f",
+     "lips": "#4b0d1f",
+     "paint": "none"
+    },
+    "outfit": {
+     "top": {
+      "id": "corset",
+      "color": "#2b1338"
+     },
+     "bottom": {
+      "id": "gown",
+      "color": "#3a1d4f"
+     },
+     "shoes": {
+      "id": "boots",
+      "color": "#121216"
+     },
+     "neck": {
+      "id": "choker",
+      "color": "#121216"
+     },
+     "wrist": {
+      "id": "longgloves",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "violin",
+     "model": "harp",
+     "color": "#8a5a2b",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "marching",
+   "name": "The Marching Snare",
+   "instrument": "drums",
+   "look": {
+    "build": "average",
+    "skin": "#eab48f",
+    "stance": "relaxed",
+    "face": {
+     "shape": "oval",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "button",
+     "mouth": "neutral"
+    },
+    "hair": {
+     "style": "buzz",
+     "color": "#3a2418"
+    },
+    "outfit": {
+     "top": {
+      "id": "buttonup",
+      "color": "#f2f2f2"
+     },
+     "outer": {
+      "id": "uniform",
+      "color": "#b3121f"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#f2f2f2",
+      "fit": "regular"
+     },
+     "shoes": {
+      "id": "creepers",
+      "color": "#121216"
+     },
+     "hat": {
+      "id": "shako",
+      "color": "#b3121f",
+      "color2": "#ffd23f"
+     },
+     "wrist": {
+      "id": "fullgloves",
+      "color": "#f2f2f2"
+     },
+     "belt": {
+      "id": "none",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "drums",
+     "model": "marching",
+     "color": "#b3121f",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "blues",
+   "name": "The Blues Pianist",
+   "instrument": "keys",
+   "look": {
+    "build": "average",
+    "skin": "#c4834f",
+    "stance": "relaxed",
+    "face": {
+     "shape": "square",
+     "eyes": "toonlid",
+     "eyeColor": "#3b2414",
+     "brows": "thick",
+     "nose": "straight",
+     "mouth": "smirk"
+    },
+    "hair": {
+     "style": "buzz",
+     "color": "#16120f",
+     "facial": "mustache"
+    },
+    "outfit": {
+     "top": {
+      "id": "turtleneck",
+      "color": "#121216"
+     },
+     "outer": {
+      "id": "blazer",
+      "color": "#1d2a4d",
+      "pattern": "pinstripe",
+      "color2": "#c0c5cc"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#1d2a4d",
+      "pattern": "pinstripe",
+      "color2": "#c0c5cc",
+      "fit": "regular"
+     },
+     "shoes": {
+      "id": "creepers",
+      "color": "#121216"
+     },
+     "hat": {
+      "id": "fedora",
+      "color": "#1d2a4d"
+     },
+     "glasses": {
+      "id": "square",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "keys",
+     "model": "synth",
+     "color": "#17141c",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "sitar",
+   "name": "The Psychedelic Sitarist",
+   "instrument": "violin",
+   "look": {
+    "build": "slim",
+    "skin": "#a8693d",
+    "stance": "relaxed",
+    "face": {
+     "shape": "long",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "thick",
+     "nose": "straight",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "buzz",
+     "color": "#16120f",
+     "facial": "beard"
+    },
+    "outfit": {
+     "top": {
+      "id": "collar",
+      "color": "#ff7a1a",
+      "pattern": "psychedelic",
+      "color2": "#ff3b6b"
+     },
+     "bottom": {
+      "id": "harem",
+      "color": "#ff3b6b"
+     },
+     "shoes": {
+      "id": "curled",
+      "color": "#ff3b6b"
+     },
+     "hat": {
+      "id": "turban",
+      "color": "#ff4d8b",
+      "pattern": "psychedelic",
+      "color2": "#ffcc1a"
+     }
+    },
+    "instrument": {
+     "type": "violin",
+     "model": "sitar",
+     "color": "#7a3b16",
+     "finish": "sunburst"
+    }
+   }
+  },
+  {
+   "id": "glamharp",
+   "name": "The Glam Harmonicist",
+   "instrument": "vocals",
+   "look": {
+    "build": "slim",
+    "skin": "#fde3d0",
+    "stance": "wide",
+    "face": {
+     "shape": "heart",
+     "eyes": "toonlid",
+     "eyeColor": "#3b74b8",
+     "brows": "arched",
+     "nose": "small",
+     "mouth": "grin"
+    },
+    "hair": {
+     "style": "hairmetal",
+     "color": "#ffd23f"
+    },
+    "makeup": {
+     "liner": true,
+     "shadow": "#13a8c4",
+     "lips": "#ff4d8b",
+     "paint": "glamstar",
+     "paintColor": "#ff3b6b"
+    },
+    "outfit": {
+     "top": {
+      "id": "tank",
+      "color": "#121216"
+     },
+     "outer": {
+      "id": "waistcoat",
+      "color": "#f2f2f2",
+      "pattern": "zebra",
+      "color2": "#121216"
+     },
+     "bottom": {
+      "id": "leather",
+      "color": "#ff3b8b"
+     },
+     "shoes": {
+      "id": "platforms",
+      "color": "#c0c5cc"
+     },
+     "wrist": {
+      "id": "spiked",
+      "color": "#121216"
+     },
+     "belt": {
+      "id": "studded",
+      "color": "#121216"
+     }
+    },
+    "piercings": [
+     "ear"
+    ],
+    "instrument": {
+     "type": "vocals",
+     "model": "harmonica",
+     "color": "#c9ced8",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "trumpet",
+   "name": "The Retro Trumpeter",
+   "instrument": "horns",
+   "look": {
+    "build": "average",
+    "skin": "#6f4024",
+    "stance": "relaxed",
+    "face": {
+     "shape": "square",
+     "eyes": "toon",
+     "eyeColor": "#3b2414",
+     "brows": "soft",
+     "nose": "wide",
+     "mouth": "smile"
+    },
+    "hair": {
+     "style": "fade",
+     "color": "#16120f"
+    },
+    "outfit": {
+     "top": {
+      "id": "turtleneck",
+      "color": "#121216"
+     },
+     "outer": {
+      "id": "blazer",
+      "color": "#4f7a3a",
+      "pattern": "psychedelic",
+      "color2": "#c9a227"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#121216",
+      "fit": "regular"
+     },
+     "shoes": {
+      "id": "creepers",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "horns",
+     "model": "trumpet",
+     "color": "#e3b23c",
+     "finish": "gloss"
+    }
+   }
+  },
+  {
+   "id": "cyberdrum",
+   "name": "The Cyberpunk Drummer",
+   "instrument": "drums",
+   "look": {
+    "build": "athletic",
+    "skin": "#c9b7e8",
+    "stance": "power",
+    "face": {
+     "shape": "pointed",
+     "eyes": "toon",
+     "eyeColor": "#13a8c4",
+     "brows": "angry",
+     "nose": "small",
+     "mouth": "fangs",
+     "browTilt": 20
+    },
+    "hair": {
+     "style": "swept",
+     "color": "#ff4d8b"
+    },
+    "outfit": {
+     "top": {
+      "id": "turtleneck",
+      "color": "#121216"
+     },
+     "outer": {
+      "id": "tech",
+      "color": "#1d1a22",
+      "color2": "#29e0e0"
+     },
+     "bottom": {
+      "id": "skinny",
+      "color": "#1d1a22",
+      "fit": "regular"
+     },
+     "shoes": {
+      "id": "moonboots",
+      "color": "#2a2833",
+      "color2": "#29e0e0"
+     },
+     "glasses": {
+      "id": "visor",
+      "color": "#29b6f6"
+     },
+     "wrist": {
+      "id": "fullgloves",
+      "color": "#121216"
+     }
+    },
+    "instrument": {
+     "type": "drums",
+     "model": "classic",
+     "color": "#13a8c4",
+     "finish": "gloss"
+    }
+   }
+  }
+ ]
 }

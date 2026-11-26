@@ -554,7 +554,7 @@ function recruit_candidate(int $rid, string $day, int $slot, int $tier, string $
     mt_srand();
     return ['slot' => $slot, 'name' => $name, 'role' => $role, 'roleName' => BAND_ROLES[$role], 'pronouns' => $pronouns,
         'personality' => $pers, 'personalityName' => PERSONALITIES[$pers]['name'], 'personalityDesc' => PERSONALITIES[$pers]['desc'],
-        'skill' => $skill, 'wage' => $wage, 'signing' => $wage * 4, 'appearance' => random_appearance($role, $seed)];
+        'skill' => $skill, 'wage' => $wage, 'signing' => $wage * 4, 'appearance' => random_appearance($role, $seed, true)];
 }
 
 function act_hire(array $r, int $slot): array

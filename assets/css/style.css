@@ -308,3 +308,10 @@ dialog.wide { width: min(900px, 96vw); } dialog::backdrop { background: #05030ac
 @media (max-width: 700px) { .slider-row { grid-template-columns: 1fr 56px auto; } .slider-row label { grid-column: 1 / -1; } }
 .preview-stage { overflow: hidden; }
 svg.avatar.view-face { overflow: hidden; aspect-ratio: 1 / 1; height: auto; width: 100%; }
+
+/* ---------- starter looks */
+.arch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin-top: 10px; }
+.arch-card { display: grid; gap: 2px; justify-items: center; background: #0e0a18; border: 2px solid var(--line); border-radius: 14px; padding: 6px 4px 8px; cursor: pointer; color: var(--text); font: inherit; font-weight: 700; font-size: .8rem; text-align: center; }
+.arch-card:hover, .arch-card:focus-visible { border-color: var(--pink); transform: translateY(-2px); }
+.arch-card svg { width: 100%; height: auto; }
+.arch-note { min-height: 1.2em; }

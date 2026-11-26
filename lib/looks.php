@@ -144,6 +144,7 @@ function random_appearance(string $role, int $seed): array
             'hat' => mt_rand(1, 4) === 1 ? ['id' => $pick($free($L['outfit']['hat']))['id'], 'color' => $pick($P['fabric'])] : ['id' => 'none'],
             'glasses' => mt_rand(1, 4) === 1 ? ['id' => $pick($free($L['outfit']['glasses']))['id'], 'color' => '#121216'] : ['id' => 'none'],
             'neck' => mt_rand(1, 3) === 1 ? ['id' => $pick($free($L['outfit']['neck']))['id'], 'color' => '#c0c5cc'] : ['id' => 'none'],
+            'wrist' => mt_rand(1, 2) === 1 ? ['id' => $pick($free($L['outfit']['wrist']))['id'], 'color' => $pick($P['fabric'])] : ['id' => 'none'],
         ],
         'piercings' => array_values(array_map(fn($p) => $p['id'], array_filter($L['piercings'], fn() => mt_rand(1, 6) === 1))),
         'tattoos' => $tattoos,

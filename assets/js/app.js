@@ -407,7 +407,7 @@ function viewWardrobe(main) {
   const L = Avatar.catalog, owned = new Set(G.state.owned), fame = R().fame;
   const groups = [
     ['hair', 'Hairstyles', L.hair], ['makeup.paint', 'Face paint', L.makeup.paint], ['tattoo', 'Tattoo designs', L.tattoos.designs],
-    ...Object.entries(L.outfit).map(([k, list]) => [`outfit.${k}`, { top: 'Tops', bottom: 'Bottoms', legwear: 'Legwear', shoes: 'Shoes', outer: 'Jackets', hat: 'Hats', glasses: 'Glasses', neck: 'Neckwear' }[k], list]),
+    ...Object.entries(L.outfit).map(([k, list]) => [`outfit.${k}`, { top: 'Tops', bottom: 'Bottoms', legwear: 'Legwear', shoes: 'Shoes', outer: 'Jackets', hat: 'Hats', glasses: 'Glasses', neck: 'Neckwear', wrist: 'Wristwear' }[k], list]),
     ...Object.entries(L.instruments).filter(([k]) => k !== 'finishes').map(([k, ins]) => [`instrument.${k}`, `${ins.name} models`, ins.models]),
     ['finish', 'Instrument finishes', L.instruments.finishes],
   ];

@@ -267,6 +267,7 @@ dialog.wide { width: min(900px, 96vw); } dialog::backdrop { background: #05030ac
 .hw-key b { font-size: 1.5rem; color: #fff; } .hw-key small { font-size: .7rem; color: var(--muted); min-height: 1em; }
 .hw-key.press { animation: keypress .15s; } @keyframes keypress { 50% { background: currentColor; transform: translateY(2px); } }
 .l0 { color: #ff5c6c; } .l1 { color: #ff9d3b; } .l2 { color: #ffd23f; } .l3 { color: #6ff0a0; } .l4 { color: #29e0e0; } .l5 { color: #4f8bff; } .l6 { color: #b98cff; } .l7 { color: #ff6fd1; }
+.hw-note { color: #120d1d !important; box-shadow: 0 0 14px #ffffff55; }
 .hw-note.l0 { background: #ff5c6c; } .hw-note.l1 { background: #ff9d3b; } .hw-note.l2 { background: #ffd23f; } .hw-note.l3 { background: #6ff0a0; }
 .hw-note.l4 { background: #29e0e0; } .hw-note.l5 { background: #4f8bff; } .hw-note.l6 { background: #b98cff; } .hw-note.l7 { background: #ff6fd1; }
 .autoplay .auto-lyric { font-size: 1.6rem; font-weight: 800; text-align: center; min-height: 2.4em; margin: 18px 0; color: var(--yellow); }

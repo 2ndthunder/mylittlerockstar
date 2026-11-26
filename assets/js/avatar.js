@@ -7,6 +7,7 @@ const Avatar = (() => {
   const INK = '#1b1424';          // outline colour
   const CX = 120;                 // centre line
   let uid = 0;
+  let CUR = null;                 // context of the avatar being drawn (for clip ids)
 
   /* ---------------------------------------------------------------- colour helpers */
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -22,15 +23,15 @@ const Avatar = (() => {
 
   /* ---------------------------------------------------------------- body metrics */
   const BUILDS = {
-    slim:     { sw: 30, ww: 21, hw: 24, arm: 12, leg: 14, neck: 8,  bust: 0 },
-    average:  { sw: 34, ww: 26, hw: 27, arm: 13, leg: 15, neck: 9,  bust: 0 },
-    athletic: { sw: 39, ww: 27, hw: 27, arm: 15, leg: 16, neck: 10, bust: 0 },
-    curvy:    { sw: 32, ww: 23, hw: 34, arm: 13, leg: 16, neck: 8,  bust: 5 },
-    broad:    { sw: 41, ww: 33, hw: 33, arm: 16, leg: 17, neck: 11, bust: 0 },
-    heavy:    { sw: 41, ww: 39, hw: 39, arm: 16, leg: 18, neck: 11, bust: 3 },
+    slim:     { sw: 35, ww: 24, hw: 26, arm: 15, leg: 19, neck: 8,  bust: 0 },
+    average:  { sw: 39, ww: 29, hw: 29, arm: 16, leg: 20, neck: 9,  bust: 0 },
+    athletic: { sw: 44, ww: 30, hw: 29, arm: 18, leg: 21, neck: 10, bust: 0 },
+    curvy:    { sw: 37, ww: 26, hw: 36, arm: 16, leg: 21, neck: 8,  bust: 5 },
+    broad:    { sw: 46, ww: 36, hw: 35, arm: 19, leg: 22, neck: 11, bust: 0 },
+    heavy:    { sw: 46, ww: 42, hw: 41, arm: 19, leg: 23, neck: 11, bust: 3 },
   };
-  const Y = { head: 64, neckTop: 84, shoulder: 104, chest: 130, waist: 172, hip: 190, crotch: 204, knee: 248, ankle: 296, foot: 310 };
-  const HEAD_SCALE = 1.85;  // cartoon proportions: head is about a third of total height
+  const Y = { head: 64, neckTop: 84, shoulder: 104, chest: 130, waist: 172, hip: 190, crotch: 204, knee: 254, ankle: 306, foot: 320 };
+  const HEAD_SCALE = 1.5;   // big, characterful heads (~1/4 of total height) like the Gemini style sheet
 
   const FACES = {
     round:  { cw: 25, jw: 21, chinW: 9,  chinY: 91 },
@@ -51,7 +52,8 @@ const Avatar = (() => {
       this.skin = safe(a.skin);
       this.pose = poseFor(a, this.b);
     }
-    grad(color, dir = 'tl') {
+    grad(color) { return safe(color); }   // flat fill; cel shadows are drawn as shapes on top
+    gradSmooth(color, dir = 'tl') {
       color = safe(color);
       const key = color + dir;
       if (this.gradCache.has(key)) return `url(#${this.gradCache.get(key)})`;
@@ -114,10 +116,45 @@ const Avatar = (() => {
 
   /* ---------------------------------------------------------------- primitives */
   const limbPath = pts => `M${pts.map(p => p.join(' ')).join(' L')}`;
-  function limb(pts, w, fill, outline = true) {
-    const d = limbPath(pts);
-    return (outline ? `<path d="${d}" stroke="${INK}" stroke-width="${w + 5.5}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` : '') +
-      `<path d="${d}" stroke="${fill}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+  const fx = p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+
+  /** Outline of a tapered limb through 2-3 joint points with rounded ends (shoulder→elbow→wrist, hip→knee→ankle). */
+  function taper(pts, ws, { flatEnd = false } = {}) {
+    const n = pts.length, L = [], R = [];
+    const nrm = (p, q) => { const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1; return [-dy / l, dx / l]; };
+    const dir = (p, q) => { const dx = q[0] - p[0], dy = q[1] - p[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+    for (let i = 0; i < n; i++) {
+      let v;
+      if (i === 0) v = nrm(pts[0], pts[1]);
+      else if (i === n - 1) v = nrm(pts[n - 2], pts[n - 1]);
+      else { const a = nrm(pts[i - 1], pts[i]), b = nrm(pts[i], pts[i + 1]); v = [a[0] + b[0], a[1] + b[1]]; const l = Math.hypot(...v) || 1; v = [v[0] / l, v[1] / l]; }
+      const h = ws[i] / 2;
+      L.push([pts[i][0] + v[0] * h, pts[i][1] + v[1] * h]); R.push([pts[i][0] - v[0] * h, pts[i][1] - v[1] * h]);
+    }
+    const de = dir(pts[n - 2], pts[n - 1]), ds = dir(pts[1], pts[0]);
+    const ke = ws[n - 1] / 2 * 1.33, ks = ws[0] / 2 * 1.33;
+    let d = `M${fx(L[0])}`;
+    for (let i = 1; i < n; i++) d += ` L${fx(L[i])}`;
+    d += flatEnd ? ` L${fx(R[n - 1])}` : ` C${fx([L[n - 1][0] + de[0] * ke, L[n - 1][1] + de[1] * ke])} ${fx([R[n - 1][0] + de[0] * ke, R[n - 1][1] + de[1] * ke])} ${fx(R[n - 1])}`;
+    for (let i = n - 2; i >= 0; i--) d += ` L${fx(R[i])}`;
+    d += ` C${fx([R[0][0] + ds[0] * ks, R[0][1] + ds[1] * ks])} ${fx([L[0][0] + ds[0] * ks, L[0][1] + ds[1] * ks])} ${fx(L[0])} Z`;
+    return d;
+  }
+
+  /** Cel shading: a hard shadow crescent on the lower-right of any shape (works with patterns too). */
+  function cel(d, { dx = -4, dy = -3, op = 0.22 } = {}) {
+    const id = `${CUR.id}k${CUR.k = (CUR.k || 0) + 1}`;
+    return `<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})" pointer-events="none">` +
+      `<path d="M-999 -999H999V999H-999Z ${d}" fill-rule="evenodd" fill="${INK}" opacity="${op}" transform="translate(${dx} ${dy})"/></g>`;
+  }
+  /** Filled shape + cel shadow + bold outline. */
+  function shape(d, fill, sw = 3, celOpt) {
+    return `<path d="${d}" fill="${fill}"/>${celOpt === false ? '' : cel(d, celOpt)}<path d="${d}" fill="none" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+  }
+  function limb(pts, w, fill, outline = true, opts = {}) {
+    const ws = pts.length === 3 ? [w * 1.18, w * 0.94, w * 0.8] : [w * 1.12, w * 0.92];
+    const d = taper(pts, ws, opts);
+    return outline ? shape(d, fill, 2.8) : `<path d="${d}" fill="${fill}"/>`;
   }
   const mid = (p, q, t = 0.5) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
   const ang = (p, q) => Math.atan2(q[1] - p[1], q[0] - p[0]) * 180 / Math.PI;
@@ -159,8 +196,8 @@ const Avatar = (() => {
   function drawBottoms(c) {
     const it = c.a.outfit?.bottom; if (!it) return '';
     const { b } = c, legs = legPoints(b), f = c.fabric(it), w = b.leg + 7;
-    const hipBand = `<path d="M${CX - b.hw - 1} ${Y.hip - 10} L${CX + b.hw + 1} ${Y.hip - 10} L${CX + b.hw + 2} ${Y.crotch + 8} L${CX - b.hw - 2} ${Y.crotch + 8} Z"
-      fill="${f}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+    const hipBand = shape(`M${CX - b.hw - 1} ${Y.hip - 10} L${CX + b.hw + 1} ${Y.hip - 10} L${CX + b.hw + 2} ${Y.crotch + 8} L${CX - b.hw - 2} ${Y.crotch + 8} Z`, f, 3)
+      + `<path d="M${CX - b.hw + 3} ${Y.hip - 6} q6 10 14 9 M${CX + b.hw - 3} ${Y.hip - 6} q-6 10 -14 9 M${CX} ${Y.hip - 7} v14" stroke="${INK}" stroke-width="1.3" fill="none" opacity=".5"/>`;
     const belt = `<rect x="${CX - b.hw - 1}" y="${Y.hip - 12}" width="${b.hw * 2 + 2}" height="5" rx="2" fill="#141014"/>
       <rect x="${CX - 4}" y="${Y.hip - 12.5}" width="8" height="6" rx="1" fill="#c9ccd6"/>`;
     const fullLeg = L => limb(L, w, f);
@@ -196,8 +233,20 @@ const Avatar = (() => {
         break;
       default: // skinny, ripped, cargo, leather
         s = fullLeg(legs.L) + fullLeg(legs.R) + hipBand + belt;
+        for (const [i, L] of [legs.L, legs.R].entries()) {
+          const sg = i ? 1 : -1;
+          if (it.id !== 'leather') s += `<path d="M${L[0][0] + sg * w * 0.42} ${L[0][1] + 6} L${L[1][0] + sg * w * 0.36} ${L[1][1]} L${L[2][0] + sg * w * 0.3} ${L[2][1] - 4}" stroke="${shade(safe(it.color), 0.4)}" stroke-width="1" stroke-dasharray="2.2 1.8" fill="none"/>`;
+          // rolled cuff
+          const a2 = L[2]; s += `<rect x="${a2[0] - w * 0.42}" y="${a2[1] - 6}" width="${w * 0.84}" height="6" rx="2" fill="${shade(safe(it.color), 0.15)}" stroke="${INK}" stroke-width="1.8"/>`;
+          // knee crease
+          s += `<path d="M${L[1][0] - 4} ${L[1][1] - 2} q4 3 8 0" stroke="${INK}" stroke-width="1.1" fill="none" opacity=".45"/>`;
+        }
         if (it.id === 'ripped') for (const L of [legs.L, legs.R]) {
-          const k = L[1]; s += `<path d="M${k[0] - 5} ${k[1] - 3} q5 -3 10 0 M${k[0] - 4} ${k[1] + 2} q4 2 8 0" stroke="#efe9df" stroke-width="2" fill="none"/>`;
+          const k = mid(L[0], L[1], 0.82), k2 = mid(L[1], L[2], 0.45);
+          for (const [p, sz] of [[k, 1], [k2, 0.7]]) {
+            s += `<path d="M${p[0] - 6 * sz} ${p[1] - 3 * sz} l3 -2 l3 1.5 l3 -1.5 l3 2 l-1 5 l-3 1 l-3 -1 l-3 1 z" fill="${c.skin}" stroke="${INK}" stroke-width="1.2"/>
+              <path d="M${p[0] - 6 * sz} ${p[1] - 1} h${12 * sz} M${p[0] - 5 * sz} ${p[1] + 1.5} h${10 * sz}" stroke="#f1ede6" stroke-width="1.1"/>`;
+          }
         }
         if (it.id === 'cargo') for (const L of [legs.L, legs.R]) {
           const p = mid(L[0], L[1], 0.7); s += `<rect x="${p[0] - 6}" y="${p[1] - 6}" width="12" height="12" rx="2" fill="${shade(safe(it.color), -0.2)}" stroke="${INK}" stroke-width="1.2"/>`;
@@ -215,26 +264,44 @@ const Avatar = (() => {
   function drawShoes(c) {
     const it = c.a.outfit?.shoes, id = it?.id || 'sneakers';
     const legs = legPoints(c.b), col = safe(it?.color || '#121216');
+    const o = `stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"`;
     let s = '';
     for (const L of [legs.L, legs.R]) {
-      const [x] = L[2], f = c.grad(col);
-      if (id === 'barefoot') { s += `<ellipse cx="${x + 4}" cy="${Y.foot - 4}" rx="10" ry="5" fill="${c.grad(c.skin)}" stroke="${INK}" stroke-width="2"/>`; continue; }
-      s += `<g transform="translate(${x} ${Y.foot}) scale(1.55) translate(${-x} ${-Y.foot})">`;
-      const sole = id === 'platforms' ? 12 : id === 'creepers' ? 7 : 4;
-      const shaft = { boots: 34, cowboy: 30, platforms: 40, hightops: 18 }[id] || 0;
-      if (shaft) s += `<path d="M${x - 8} ${Y.foot - sole - 8 - shaft} L${x + 8} ${Y.foot - sole - 8 - shaft} L${x + 9} ${Y.foot - sole - 4} L${x - 9} ${Y.foot - sole - 4} Z" fill="${f}" stroke="${INK}" stroke-width="2"/>`;
-      s += `<path d="M${x - 10} ${Y.foot - sole - 10} Q${x + 4} ${Y.foot - sole - 14} ${x + 17} ${Y.foot - sole - 3} L${x + 17} ${Y.foot - sole} L${x - 10} ${Y.foot - sole} Z" fill="${f}" stroke="${INK}" stroke-width="2"/>`;
-      s += `<rect x="${x - 11}" y="${Y.foot - sole}" width="29" height="${sole}" rx="2" fill="${id === 'hightops' || id === 'sneakers' ? '#f2f2f2' : '#18141a'}" stroke="${INK}" stroke-width="2"/>`;
-      if (id === 'hightops' || id === 'sneakers') s += `<circle cx="${x + 2}" cy="${Y.foot - sole - 6}" r="3" fill="#f2f2f2" stroke="${INK}" stroke-width="1"/>`;
-      if (id === 'cowboy') s += `<path d="M${x - 5} ${Y.foot - 30} q5 -6 10 0" stroke="${shade(col, 0.4)}" stroke-width="1.4" fill="none"/>`;
-      if (id === 'boots') s += [0, 8, 16].map(o => `<path d="M${x - 5} ${Y.foot - 40 + o} l10 0" stroke="#d9d4cc" stroke-width="1"/>`).join('');
-      s += `</g>`;
+      const x = L[2][0], F = Y.foot;
+      if (id === 'barefoot') { s += shape(`M${x - 9} ${F - 8} Q${x + 2} ${F - 12} ${x + 15} ${F - 4} Q${x + 15} ${F} ${x + 10} ${F} L${x - 9} ${F} Z`, c.skin, 2.2); continue; }
+      const sole = id === 'platforms' ? 14 : id === 'creepers' ? 8 : id === 'boots' ? 6 : 5;
+      const shaft = { boots: 40, cowboy: 34, platforms: 46, hightops: 20 }[id] || 0;
+      const top = F - sole, wd = 13;
+      let g = '';
+      if (shaft) g += shape(`M${x - wd + 1} ${top - shaft} L${x + wd - 1} ${top - shaft} L${x + wd + 1} ${top - 6} L${x - wd - 1} ${top - 6} Z`, col, 2.4);
+      // foot / toe box
+      g += shape(`M${x - wd} ${top - 14} Q${x + 2} ${top - 20} ${x + 14} ${top - 9} Q${x + 24} ${top - 5} ${x + 23} ${top} L${x - wd - 1} ${top} Z`, col, 2.4);
+      // sole with tread
+      const soleCol = id === 'hightops' || id === 'sneakers' ? '#f2efe8' : '#18141a';
+      g += `<rect x="${x - wd - 2}" y="${top}" width="${wd + 27}" height="${sole}" rx="3" fill="${soleCol}" ${o}/>`;
+      if (soleCol === '#18141a') g += [...Array(6)].map((_, i) => `<rect x="${x - wd + 1 + i * 6}" y="${F - 2.4}" width="3" height="2.4" fill="#3a3340"/>`).join('');
+      else g += `<line x1="${x - wd - 1}" y1="${top + sole * 0.45}" x2="${x + 24}" y2="${top + sole * 0.45}" stroke="${shade(col, -0.1)}" stroke-width="1.4"/>`;
+      if (id === 'boots' || id === 'platforms' || id === 'hightops') {
+        // laces: eyelets + criss-cross
+        const y0 = top - shaft + 5, y1 = top - 12;
+        for (let y = y0; y < y1; y += 6) g += `<path d="M${x - 4} ${y} L${x + 4} ${y + 6} M${x + 4} ${y} L${x - 4} ${y + 6}" stroke="#e9e4da" stroke-width="1.4"/><circle cx="${x - 4.5}" cy="${y}" r="1" fill="#c9ccd6"/><circle cx="${x + 4.5}" cy="${y}" r="1" fill="#c9ccd6"/>`;
+        g += `<path d="M${x - wd + 1} ${top - shaft + 3} H${x + wd - 1}" stroke="${shade(col, -0.35)}" stroke-width="3"/>`;
+      }
+      if (id === 'sneakers' || id === 'hightops') {
+        g += `<path d="M${x + 6} ${top - 2} Q${x + 14} ${top - 9} ${x + 22} ${top - 2} Z" fill="#f2efe8" ${o}/>`;
+        g += `<path d="M${x - 6} ${top - 9} q8 -6 16 2" stroke="${shade(col, 0.55)}" stroke-width="2.4" fill="none"/>`;
+        if (id === 'sneakers') g += [0, 1, 2].map(i => `<line x1="${x - 1 + i * 3}" y1="${top - 15 + i}" x2="${x + 4 + i * 3}" y2="${top - 13 + i}" stroke="#e9e4da" stroke-width="1.2"/>`).join('');
+        if (id === 'hightops') g += `<circle cx="${x - 3}" cy="${top - shaft + 12}" r="3.6" fill="#f2efe8" ${o}/>`;
+      }
+      if (id === 'cowboy') g += `<path d="M${x - 6} ${top - 26} q6 -7 12 0 M${x - 5} ${top - 16} q5 -5 10 0" stroke="${shade(col, 0.45)}" stroke-width="1.4" fill="none"/><path d="M${x - wd - 2} ${F} l6 -6 h6 v6 z" fill="#18141a"/>`;
+      if (id === 'creepers') g += `<path d="M${x - wd} ${top - 8} h${wd + 16}" stroke="${shade(col, 0.4)}" stroke-width="1.6" stroke-dasharray="2 2"/>`;
+      s += `<g transform="translate(${x} ${F}) scale(1.22) translate(${-x} ${-F})">${g}</g>`;
     }
     return s;
   }
 
   function drawTorso(c) {
-    return `<path d="${torsoPath(c.b)}" fill="${c.grad(c.skin)}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+    return shape(torsoPath(c.b), c.skin);
   }
 
   function drawTop(c) {
@@ -274,8 +341,13 @@ const Avatar = (() => {
           fill="${safe(it.printColor || shade(col, col === '#f2f2f2' ? -0.9 : 0.85))}" letter-spacing=".5">${esc(it.print.slice(0, 12).toUpperCase())}</text>`;
         s += `<path d="M${CX - 8} ${Y.chest + 22} l8 6 l8 -6" stroke="${safe(it.printColor || shade(col, 0.85))}" stroke-width="1.5" fill="none" opacity=".8"/>`;
       }
+      // cel shadow + fabric folds
+      s += cel(torsoPath(b), { dx: -5, dy: -3, op: 0.2 });
+      s += `<path d="M${CX - b.sw + 8} ${Y.shoulder + 14} q4 6 2 12 M${CX + b.sw - 8} ${Y.shoulder + 14} q-4 6 -2 12 M${CX - 10} ${Math.min(bottomY, Y.waist) - 6} q6 4 14 1"
+        stroke="${INK}" stroke-width="1.2" fill="none" opacity=".45" stroke-linecap="round"/>`;
       // neckline
-      if (!['tank', 'corset', 'buttonup', 'turtleneck'].includes(it.id)) s += `<path d="M${CX - 11} ${Y.shoulder - 6} Q${CX} ${Y.shoulder + 6} ${CX + 11} ${Y.shoulder - 6}" fill="${c.grad(c.skin)}" stroke="${INK}" stroke-width="1.6"/>`;
+      if (!['tank', 'corset', 'buttonup', 'turtleneck'].includes(it.id)) s += `<path d="M${CX - 12} ${Y.shoulder - 7} Q${CX} ${Y.shoulder + 7} ${CX + 12} ${Y.shoulder - 7}" fill="${c.skin}" stroke="${shade(col, -0.3)}" stroke-width="4"/>
+        <path d="M${CX - 12} ${Y.shoulder - 7} Q${CX} ${Y.shoulder + 7} ${CX + 12} ${Y.shoulder - 7}" fill="none" stroke="${INK}" stroke-width="1.4"/>`;
       if (it.id === 'crop') s += `<line x1="${CX - 40}" y1="${bottomY}" x2="${CX + 40}" y2="${bottomY}" stroke="${INK}" stroke-width="2"/>`;
     }
     s += `</g>`;
@@ -289,14 +361,28 @@ const Avatar = (() => {
     const lapel = it.id === 'denimvest' || it.id === 'studvest' ? 13 : 9;
     const side = sign => {
       const x0 = CX + sign * lapel, xs = CX + sign * (b.sw + 2), xh = CX + sign * (Math.max(b.hw, b.ww) + (long ? 10 : 4));
-      return `<path d="M${x0} ${Y.shoulder - 6} L${xs} ${Y.shoulder - 1} Q${xs + sign * 2} ${Y.chest} ${CX + sign * (b.ww + 3)} ${Y.waist} L${xh} ${bottom} L${CX + sign * (lapel - 2)} ${bottom} L${CX + sign * 3} ${Y.chest + 10} Z"
-        fill="${f}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+      const d = `M${x0} ${Y.shoulder - 6} L${xs} ${Y.shoulder - 1} Q${xs + sign * 2} ${Y.chest} ${CX + sign * (b.ww + 3)} ${Y.waist} L${xh} ${bottom} L${CX + sign * (lapel - 2)} ${bottom} L${CX + sign * 3} ${Y.chest + 10} Z`;
+      return shape(d, f, 3, { dx: -4, dy: -3, op: sign > 0 ? 0.26 : 0.16 });
     };
     let s = side(-1) + side(1);
-    if (it.id === 'leather') s += `<path d="M${CX - lapel} ${Y.shoulder - 6} L${CX - 18} ${Y.chest} L${CX - 4} ${Y.chest + 10}" stroke="${shade(col, 0.3)}" stroke-width="1.6" fill="none"/>
-      <line x1="${CX + 12}" y1="${Y.chest + 4}" x2="${CX + 18}" y2="${Y.waist}" stroke="#c9ccd6" stroke-width="1.5"/>`;
-    if (it.id === 'denimvest') s += [[-20, 140, '#ffcc1a'], [16, 150, '#b3121f'], [-22, 172, '#f2f2f2']].map(([x, y, pc]) =>
-      `<rect x="${CX + x - 6}" y="${y - 5}" width="12" height="10" rx="2" fill="${pc}" stroke="${INK}" stroke-width="1" transform="rotate(${x / 3} ${CX + x} ${y})"/>`).join('');
+    const pins = (pts) => pts.map(([x, y, pc]) => `<circle cx="${x}" cy="${y}" r="3.2" fill="${pc}" stroke="${INK}" stroke-width="1.2"/><circle cx="${x - 1}" cy="${y - 1}" r="1" fill="#fff" opacity=".7"/>`).join('');
+    if (it.id === 'leather' || it.id === 'bomber') {
+      // big lapel, diagonal zipper, zip pockets, snaps, pins
+      s += `<path d="M${CX - lapel} ${Y.shoulder - 6} L${CX - b.sw + 4} ${Y.chest - 2} L${CX - 6} ${Y.chest + 12} Z" fill="${shade(col, -0.18)}" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M${CX + lapel} ${Y.shoulder - 6} L${CX + b.sw - 4} ${Y.chest - 2} L${CX + 6} ${Y.chest + 12} Z" fill="${shade(col, -0.25)}" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"/>
+        <path d="M${CX + b.sw - 6} ${Y.chest + 2} L${CX + 10} ${bottom - 2}" stroke="#c9ccd6" stroke-width="2.2" stroke-dasharray="1.6 1.2"/>
+        <path d="M${CX - b.sw + 8} ${Y.waist - 10} l12 4 M${CX + b.sw - 8} ${Y.waist - 10} l-12 4" stroke="#c9ccd6" stroke-width="1.6"/>
+        <circle cx="${CX - b.sw + 6}" cy="${Y.chest - 3}" r="1.6" fill="#dfe3ea"/><circle cx="${CX + b.sw - 6}" cy="${Y.chest - 3}" r="1.6" fill="#dfe3ea"/>`;
+      if (it.id === 'leather') s += pins([[CX - 16, Y.chest + 4, '#ffcc1a'], [CX - 20, Y.chest + 14, '#ff3b6b'], [CX + 18, Y.chest + 10, '#29e0e0']]);
+    }
+    if (it.id === 'denimvest') {
+      s += [[-20, 140, '#ffcc1a'], [16, 150, '#b3121f'], [-22, 172, '#f2f2f2']].map(([x, y, pc]) =>
+        `<rect x="${CX + x - 6}" y="${y - 5}" width="12" height="10" rx="2" fill="${pc}" stroke="${INK}" stroke-width="1.2" transform="rotate(${x / 3} ${CX + x} ${y})"/>`).join('');
+      s += pins([[CX + 20, Y.chest - 4, '#ff3b6b'], [CX + 14, Y.chest + 2, '#ffcc1a'], [CX - 16, Y.chest + 20, '#29e0e0']]);
+      // frayed armholes + stitched seams
+      s += [-1, 1].map(sg => `<path d="M${CX + sg * (b.sw + 1)} ${Y.shoulder} l${-sg * 3} 4 l${sg * 3} 3 l${-sg * 3} 4 l${sg * 3} 3 l${-sg * 3} 4" stroke="#eef0f4" stroke-width="1.6" fill="none"/>
+        <path d="M${CX + sg * (lapel + 4)} ${Y.shoulder} L${CX + sg * (b.ww + 6)} ${Y.waist}" stroke="${shade(col, 0.45)}" stroke-width="1" stroke-dasharray="2 2"/>`).join('');
+    }
     if (it.id === 'studvest') for (let y = Y.shoulder + 6; y < bottom - 6; y += 10) for (const x of [-lapel - 4, lapel + 4])
       s += `<circle cx="${CX + x + (x < 0 ? -4 : 4)}" cy="${y}" r="1.8" fill="#dfe3ea" stroke="${INK}" stroke-width=".6"/>`;
     if (it.id === 'furcoat') s += `<path d="M${CX - lapel - 6} ${Y.shoulder - 8} q-6 20 2 40 M${CX + lapel + 6} ${Y.shoulder - 8} q6 20 -2 40" stroke="${shade(col, 0.45)}" stroke-width="9" stroke-linecap="round" fill="none" opacity=".9"/>`;
@@ -325,15 +411,69 @@ const Avatar = (() => {
       const end = sl.len >= 1 ? pts.slice() : [pts[0], mid(pts[0], pts[1], 0.9)];
       if (sl.sheer) s += `<path d="${limbPath(end)}" stroke="${safe(sl.item.color)}" stroke-width="${w + 2}" stroke-dasharray="1.2 2.4" stroke-linecap="round" fill="none"/>`;
       else {
-        if (sl.len >= 1) end[2] = mid(pts[1], pts[2], 0.82);
-        s += limb(end, w + (sl.isOuter ? 7 : 4), c.fabric(sl.item));
+        if (sl.len >= 1) end[2] = mid(pts[1], pts[2], 0.8);
+        const sw = w + (sl.isOuter ? 7 : 4);
+        s += limb(end, sw, c.fabric(sl.item), true, { flatEnd: true });
+        // cuff / hem band
+        const e1 = end[end.length - 1], e0 = end[end.length - 2], ca = ang(e0, e1);
+        const cw = sl.len >= 1 ? sw * 0.74 * 1.02 : sw * 0.88 * 1.02;
+        s += `<g transform="translate(${e1[0].toFixed(1)} ${e1[1].toFixed(1)}) rotate(${ca.toFixed(1)})"><rect x="-4" y="${(-cw / 2).toFixed(1)}" width="4" height="${cw.toFixed(1)}" fill="${shade(safe(sl.item.color), -0.25)}" stroke="${INK}" stroke-width="2"/></g>`;
+        // fabric fold near the elbow
+        if (sl.len >= 1) { const f = mid(pts[0], pts[1], 0.7); s += `<path d="M${f[0] - 3} ${f[1] - 2} q4 3 7 0" stroke="${INK}" stroke-width="1.2" fill="none" opacity=".5"/>`; }
         if (sl.item.id === 'furcoat') s += `<circle cx="${end[end.length - 1][0]}" cy="${end[end.length - 1][1]}" r="${w * 0.9}" fill="${shade(safe(sl.item.color), 0.4)}"/>`;
       }
     }
-    const h = pts[2];
-    s += `<circle cx="${h[0]}" cy="${h[1]}" r="${w * 0.82}" fill="${skin}" stroke="${INK}" stroke-width="2"/>`;
-    if (c.a.tattoos?.some(t => t.slot === 'hands')) s += `<path d="M${h[0] - 3} ${h[1] - 2} l6 0 M${h[0] - 3} ${h[1] + 1.5} l6 0" stroke="${safe(c.a.tattoos.find(t => t.slot === 'hands').color)}" stroke-width="1.2"/>`;
+    s += wristwear(c, pts);
+    s += hand(c, pts, key);
     return s;
+  }
+
+  /** Hand at the end of a forearm. Styles: grip (fist around a neck/stick/mic), horns, open, relaxed. */
+  function handStyle(c, key) {
+    const t = c.pose.type, stand = c.a.instrument?.model === 'stand';
+    if (t === 'vocals') return key === 'A' && !stand ? 'horns' : 'grip';
+    if (t === 'keys') return key === 'A' ? 'open' : 'grip';
+    if (t === 'none') return 'relaxed';
+    return 'grip';
+  }
+  function hand(c, pts, key) {
+    const [x, y] = pts[2], a = ang(pts[1], pts[2]), w = c.b.arm * 1.0, skin = c.skin, style = handStyle(c, key);
+    const flip = key === 'A' ? 1 : -1;   // which side the thumb sits on
+    const o = `stroke="${INK}" stroke-width="2.2" stroke-linejoin="round"`;
+    const finger = (fx0, fy, len, wid, rot = 0) => `<rect x="${fx0}" y="${fy - wid / 2}" width="${len}" height="${wid}" rx="${wid / 2}" fill="${skin}" ${o} transform="rotate(${rot} ${fx0} ${fy})"/>`;
+    let g = '';
+    if (style === 'open' || style === 'relaxed') {
+      const len = style === 'open' ? w * 1.05 : w * 0.8;
+      g += [-0.42, -0.14, 0.14, 0.42].map((t, i) => finger(w * 0.8, t * w * 1.25, len - Math.abs(t) * w * 0.4, w * 0.36, t * (style === 'open' ? 22 : 8))).join('');
+      g += `<ellipse cx="${w * 0.45}" cy="0" rx="${w * 0.62}" ry="${w * 0.62}" fill="${skin}" ${o}/>`;
+      g += finger(w * 0.3, -flip * w * 0.5, w * 0.7, w * 0.36, -flip * 40);
+    } else {
+      if (style === 'horns') g += finger(w * 0.9, -w * 0.38, w * 1.25, w * 0.34, -6) + finger(w * 0.9, w * 0.4, w * 1.05, w * 0.32, 8);
+      g += `<rect x="${-w * 0.15}" y="${-w * 0.66}" width="${w * 1.42}" height="${w * 1.32}" rx="${w * 0.46}" fill="${skin}" ${o}/>`;
+      g += [-0.33, 0, 0.33].map(t => `<path d="M${w * 1.05} ${t * w * 1.2} q${w * 0.18} ${w * 0.08} 0 ${w * 0.3}" stroke="${shade(skin, -0.35)}" stroke-width="1.3" fill="none"/>`).join('');
+      g += finger(w * 0.15, -flip * w * 0.58, w * 0.85, w * 0.36, flip * 8);   // thumb
+    }
+    g += `<path d="M${-w * 0.1} ${w * 0.4} Q${w * 0.6} ${w * 0.75} ${w * 1.1} ${w * 0.45}" stroke="${INK}" stroke-width="0" fill="${INK}" opacity=".18"/>`;
+    const tat = c.a.tattoos?.find(t => t.slot === 'hands');
+    if (tat && style !== 'open') g += [-0.33, 0, 0.33].map(t => `<circle cx="${w * 0.8}" cy="${t * w * 1.1}" r="${w * 0.1}" fill="${safe(tat.color)}"/>`).join('');
+    return `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(1)})">${g}</g>`;
+  }
+
+  /** Wristbands, spiked cuffs, bracelets. */
+  function wristwear(c, pts) {
+    const it = c.a.outfit?.wrist; if (!it || it.id === 'none') return '';
+    const p = mid(pts[1], pts[2], 0.86), a = ang(pts[1], pts[2]), w = c.b.arm * 0.82, col = safe(it.color || '#121216');
+    let g = '';
+    if (it.id === 'spiked') {
+      g += `<rect x="-5" y="${-w / 2 - 1}" width="10" height="${w + 2}" rx="2" fill="#141014" stroke="${INK}" stroke-width="1.8"/>`;
+      g += [-0.3, 0, 0.3].map(t => `<path d="M-2 ${t * w * 1.1} l-6 -2 v4 z" fill="#dfe3ea" stroke="${INK}" stroke-width=".8" transform="rotate(-90 0 ${t * w * 1.1}) translate(0 ${-w / 2})"/>`).join('');
+      g += [-0.3, 0, 0.3].map(t => `<circle cx="0" cy="${t * w}" r="1.6" fill="#dfe3ea"/>`).join('');
+    } else if (it.id === 'sweatband') {
+      g += `<rect x="-6" y="${-w / 2 - 1.5}" width="12" height="${w + 3}" rx="3" fill="${col}" stroke="${INK}" stroke-width="1.8"/><line x1="-2" y1="${-w / 2}" x2="-2" y2="${w / 2}" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
+    } else if (it.id === 'bracelets') {
+      g += [-3, 1.5].map((x, i) => `<rect x="${x}" y="${-w / 2 - 1}" width="2.6" height="${w + 2}" rx="1.3" fill="${i ? '#e3c35a' : col}" stroke="${INK}" stroke-width=".9"/>`).join('');
+    }
+    return `<g transform="translate(${p[0].toFixed(1)} ${p[1].toFixed(1)}) rotate(${a.toFixed(1)})">${g}</g>`;
   }
 
   /* ---------------------------------------------------------------- tattoos */
@@ -379,7 +519,8 @@ const Avatar = (() => {
   /* ---------------------------------------------------------------- neck & accessories */
   function drawNeck(c) {
     const n = c.b.neck;
-    return `<path d="M${CX - n} ${Y.neckTop} L${CX - n - 1} ${Y.shoulder} L${CX + n + 1} ${Y.shoulder} L${CX + n} ${Y.neckTop} Z" fill="${c.grad(shade(c.skin, -0.12))}" stroke="${INK}" stroke-width="2"/>`
+    const d = `M${CX - n} ${Y.neckTop} L${CX - n - 1.5} ${Y.shoulder + 2} L${CX + n + 1.5} ${Y.shoulder + 2} L${CX + n} ${Y.neckTop} Z`;
+    return shape(d, shade(c.skin, -0.06), 2.6) + `<path d="M${CX - n} ${Y.neckTop + 2} Q${CX} ${Y.neckTop + 14} ${CX + n} ${Y.neckTop + 2} L${CX + n} ${Y.neckTop} L${CX - n} ${Y.neckTop} Z" fill="${INK}" opacity=".25"/>`
       + tattoosOn(c, ['neck', 'chest']);
   }
   function drawNeckwear(c) {
@@ -402,8 +543,9 @@ const Avatar = (() => {
   /* ---------------------------------------------------------------- head */
   function facePath(shape) {
     const f = FACES[shape] || FACES.oval, top = 37, tw = f.cw * 0.82;
-    return `M${CX} ${top} C${CX + tw * 1.1} ${top} ${CX + f.cw} 48 ${CX + f.cw} 64 C${CX + f.cw} 76 ${CX + f.jw} 84 ${CX + f.chinW} ${f.chinY - 3}
-      Q${CX} ${f.chinY + 2} ${CX - f.chinW} ${f.chinY - 3} C${CX - f.jw} 84 ${CX - f.cw} 76 ${CX - f.cw} 64 C${CX - f.cw} 48 ${CX - tw * 1.1} ${top} ${CX} ${top} Z`;
+    return `M${CX} ${top} C${CX + tw * 1.1} ${top} ${CX + f.cw} 46 ${CX + f.cw} 62 L${CX + f.cw - 0.5} 71 L${CX + f.jw} 83
+      Q${CX + f.chinW + 5} ${f.chinY + 1} ${CX + f.chinW} ${f.chinY} Q${CX} ${f.chinY + 3} ${CX - f.chinW} ${f.chinY}
+      Q${CX - f.chinW - 5} ${f.chinY + 1} ${CX - f.jw} 83 L${CX - f.cw + 0.5} 71 L${CX - f.cw} 62 C${CX - f.cw} 46 ${CX - tw * 1.1} ${top} ${CX} ${top} Z`;
   }
 
   function drawHead(c) {
@@ -418,7 +560,9 @@ const Avatar = (() => {
     if (pierce.has('ear')) s += `<circle cx="${CX - f.cw}" cy="74" r="3" fill="none" stroke="#e3c35a" stroke-width="1.5"/><circle cx="${CX + f.cw}" cy="74" r="3" fill="none" stroke="#e3c35a" stroke-width="1.5"/>`;
     if (pierce.has('gauge')) s += `<circle cx="${CX - f.cw + 1}" cy="71" r="2.6" fill="#141014" stroke="#c0c5cc" stroke-width="1"/>`;
     // face
-    s += `<path d="${facePath(fc.shape)}" fill="${skin}" stroke="${INK}" stroke-width="3"/>`;
+    s += shape(facePath(fc.shape), skin, 2.4, { dx: -3, dy: -1.5, op: 0.13 });
+    // cheekbone + jaw definition
+    s += `<path d="M${CX + f.cw - 4} 70 q-3 6 -8 9" stroke="${shade(c.skin, -0.3)}" stroke-width="1.2" fill="none" opacity=".7"/>`;
     // jaw shadow for depth
     s += `<path d="M${CX - f.jw + 2} 82 Q${CX} ${f.chinY + 6} ${CX + f.jw - 2} 82" stroke="${shade(c.skin, -0.25)}" stroke-width="2" fill="none" opacity=".35"/>`;
     s += tattoosOn(c, ['cheek']);
@@ -550,7 +694,17 @@ const Avatar = (() => {
   }
   function hairFront(c) {
     const h = c.a.hair || {}, st = h.style || 'messy', g = hairFill(c), o = `stroke="${INK}" stroke-width="3" stroke-linejoin="round"`;
-    const cap = (y = 50) => `<path d="M${CX - 27} ${y + 14} C${CX - 30} 34 ${CX - 12} 28 ${CX} 28 C${CX + 14} 28 ${CX + 30} 34 ${CX + 27} ${y + 14} Q${CX} ${y - 2} ${CX - 27} ${y + 14} Z" fill="${g}" ${o}/>`;
+    const dark = shade(safe(h.color || '#16120f'), -0.45), light = shade(safe(h.color || '#16120f'), 0.35);
+    const cap = (fr = 48, vol = 0) => {
+      const top = 24 - vol;
+      const d = `M${CX - 29} 70 C${CX - 35} 40 ${CX - 21} ${top} ${CX} ${top} C${CX + 21} ${top} ${CX + 35} 40 ${CX + 29} 70 L${CX + 25.5} 70
+        L${CX + 24} 55 L${CX + 17} ${fr + 5} L${CX + 12} ${fr - 3} L${CX + 5} ${fr + 6} L${CX - 1} ${fr - 2} L${CX - 8} ${fr + 7} L${CX - 14} ${fr}
+        L${CX - 21} ${fr + 9} L${CX - 24.5} 57 L${CX - 25.5} 70 Z`;
+      return `<path d="${d}" fill="${g}"/>` + cel(d, { dx: -3, dy: -2, op: 0.2 }) + `<path d="${d}" fill="none" ${o}/>` +
+        `<path d="M${CX - 10} ${top + 6} Q${CX - 17} 36 ${CX - 21} ${fr + 2} M${CX + 7} ${top + 5} Q${CX + 12} 34 ${CX + 18} ${fr} M${CX - 1} ${top + 3} Q${CX + 1} 36 ${CX + 3} ${fr - 4}
+          M${CX - 26} 50 q1 8 1.5 16 M${CX + 26} 50 q-1 8 -1.5 16" stroke="${dark}" stroke-width="1.4" fill="none" stroke-linecap="round"/>` +
+        `<path d="M${CX - 14} ${top + 5} Q${CX - 4} ${top - 1} ${CX + 9} ${top + 4}" stroke="${light}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".75"/>`;
+    };
     switch (st) {
       case 'bald': return `<ellipse cx="${CX + 8}" cy="42" rx="8" ry="3" fill="#fff" opacity=".22"/>`;
       case 'buzz': return `<path d="M${CX - 26} 58 C${CX - 28} 36 ${CX - 12} 33 ${CX} 33 C${CX + 12} 33 ${CX + 28} 36 ${CX + 26} 58 Q${CX} 44 ${CX - 26} 58 Z" fill="${g}" opacity=".75"/>`;
@@ -730,6 +884,7 @@ const Avatar = (() => {
   function svg(a, opt = {}) {
     a = a || {};
     const c = new Ctx(a);
+    CUR = c;
     const h = clamp(+a.height || 1, 0.88, 1.12);
     const inst = drawInstrument(c);
     const instBack = typeof inst === 'object' ? inst.back : '';
@@ -764,7 +919,7 @@ const Avatar = (() => {
       </g>`;
 
     const anim = opt.anim || 'idle';
-    return `<svg class="avatar anim-${anim} inst-${c.pose.type}" viewBox="-30 -120 300 440" xmlns="http://www.w3.org/2000/svg" role="img"
+    return `<svg class="avatar anim-${anim} inst-${c.pose.type}" viewBox="-30 -70 300 410" xmlns="http://www.w3.org/2000/svg" role="img"
       aria-label="${esc(opt.title || 'Rockstar')}">
       <defs>${c.defs.join('')}</defs>
       <g transform="translate(${CX} ${Y.foot}) scale(${h}) translate(${-CX} ${-Y.foot})">${body}</g></svg>`;
@@ -797,6 +952,7 @@ const Avatar = (() => {
         hat: Math.random() < 0.75 ? { id: 'none' } : { id: pick(free(cat.outfit.hat)).id, color: pick(P.fabric) },
         glasses: Math.random() < 0.75 ? { id: 'none' } : { id: pick(free(cat.outfit.glasses)).id, color: '#121216' },
         neck: Math.random() < 0.6 ? { id: 'none' } : { id: pick(free(cat.outfit.neck)).id, color: '#c0c5cc' },
+        wrist: Math.random() < 0.55 ? { id: 'none' } : { id: pick(free(cat.outfit.wrist)).id, color: pick(P.fabric) },
       },
       piercings: cat.piercings.filter(() => Math.random() < 0.18).map(p => p.id),
       tattoos,

@@ -181,6 +181,7 @@ const Creator = (() => {
         slot('hat', 'Hat', { pattern: true });
         slot('glasses', 'Glasses');
         slot('neck', 'Neck');
+        slot('wrist', 'Wrists');
       },
       'Ink & piercings'() {
         body.append(heading(`Tattoos (${a.tattoos.length}/${L.tattoos.max})`));

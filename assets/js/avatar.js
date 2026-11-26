@@ -147,32 +147,31 @@ const Avatar = (() => {
       bass:   { A: [sA, [CX - b.sw - 10, 158], [CX - 10, 192]],      B: [sB, [CX + b.sw + 16, 146], [CX + 74, 142]] },
       keys:   { A: [sA, [CX - b.sw - 8, 162], [CX - 16, 192]],       B: [sB, [CX + b.sw + 12, 152], [CX + 50, 160]] },
       vocals: { A: [sA, [CX - b.sw - 22, 110], [CX - b.sw - 34, 66]], B: [sB, [CX + b.sw + 14, 146], [CX + 18, 108]] },
-      drums:  { A: [sA, [CX - b.sw - 14, 150], [CX - 30, 176]],      B: [sB, [CX + b.sw + 14, 150], [CX + 30, 176]] },
+      drums:  { A: [sA, [CX - b.sw - 18, 158], [CX - 28, 178]],      B: [sB, [CX + b.sw + 18, 158], [CX + 28, 178]] },
       violin: { A: [sA, [CX - b.sw - 16, 140], [CX - 30, 118]],      B: [sB, [CX + b.sw + 12, 128], [CX + 46, 112]] },
     };
     const key = instKey(type, a.instrument?.model);
     const K = {   // model-specific poses
       stand:      { A: [sA, [CX - b.sw - 6, 150], [CX + 4, 112]], B: [sB, [CX + b.sw + 6, 150], [CX + 10, 120]] },
       harmonica:  { A: [sA, [CX - b.sw - 10, 128], [CX - 2, 94]], B: [sB, [CX + b.sw + 10, 128], [CX + 14, 94]] },
-      cello:      { A: [sA, [CX - b.sw - 6, 140], [CX - 6, 136]], B: [sB, [CX + b.sw + 12, 178], [CX + 34, 210]] },
       harp:       { A: [sA, [CX - b.sw - 8, 160], [CX - 22, 186]], B: [sB, [CX + b.sw + 8, 150], [CX + 18, 168]] },
-      sitar:      { A: [sA, [CX - b.sw - 10, 150], [CX - 24, 176]], B: [sB, [CX + b.sw + 14, 132], [CX + 58, 118]] },
-      synth:      { A: [sA, [CX - b.sw - 6, 162], [CX - 28, 204]], B: [sB, [CX + b.sw + 6, 162], [CX + 28, 204]] },
-      piano:      { A: [sA, [CX - b.sw - 6, 162], [CX - 28, 206]], B: [sB, [CX + b.sw + 6, 162], [CX + 28, 206]] },
-      decks:      { A: [sA, [CX - b.sw - 6, 162], [CX - 34, 204]], B: [sB, [CX + b.sw + 6, 162], [CX + 34, 204]] },
+      synth:      { A: [sA, [CX - b.sw - 14, 160], [CX - 30, 180]], B: [sB, [CX + b.sw + 14, 160], [CX + 30, 180]] },
+      piano:      { A: [sA, [CX - b.sw - 14, 160], [CX - 30, 180]], B: [sB, [CX + b.sw + 14, 160], [CX + 30, 180]] },
+      decks:      { A: [sA, [CX - b.sw - 14, 160], [CX - 36, 180]], B: [sB, [CX + b.sw + 14, 160], [CX + 36, 180]] },
       accordion:  { A: [sA, [CX - b.sw - 12, 152], [CX - 40, 178]], B: [sB, [CX + b.sw + 12, 152], [CX + 40, 178]] },
       trombone:   { A: [sA, [CX - b.sw - 12, 130], [CX - 2, 104]], B: [sB, [CX + b.sw + 16, 160], [CX + 22, 200]] },
       sax:        { A: [sA, [CX - b.sw - 8, 146], [CX + 2, 146]], B: [sB, [CX + b.sw + 10, 176], [CX + 16, 196]] },
       trumpet:    { A: [sA, [CX - b.sw - 4, 132], [CX + 18, 100]], B: [sB, [CX + b.sw + 18, 124], [CX + 36, 96]] },
       boombox:    { A: [sA, [CX - b.sw - 8, 156], [CX - b.sw - 4, 198]], B: [sB, [CX + b.sw + 26, 104], [CX + b.sw + 26, 70]] },
-      marching:   { A: [sA, [CX - b.sw - 12, 158], [CX - 26, 190]], B: [sB, [CX + b.sw + 12, 158], [CX + 26, 190]] },
+      marching:   { A: [sA, [CX - b.sw - 16, 158], [CX - 26, 176]], B: [sB, [CX + b.sw + 16, 158], [CX + 26, 176]] },
     };
-    const raw = K[key] || P[type] || P.none;
-    return { type, key, A: ik(raw.A), B: ik(raw.B) };
+    const R = rigFor(key);
+    const raw = R ? rigPose(R, b, sA, sB) : (K[key] || P[type] || P.none);
+    return { type, key, A: ik(raw.A, b), B: ik(raw.B, b) };
   }
   /** Two-bone IK. Keeps upper arm and forearm the same length in every pose; the hint picks which way the elbow bends. */
   const UPPER = 50, FORE = 47;
-  function ik([S, E0, H]) {
+  function ik([S, E0, H], b) {
     let dx = H[0] - S[0], dy = H[1] - S[1], d = Math.hypot(dx, dy);
     const max = UPPER + FORE - 1.5;
     if (d > max) { H = [S[0] + dx / d * max, S[1] + dy / d * max]; dx = H[0] - S[0]; dy = H[1] - S[1]; d = max; }
@@ -180,9 +179,70 @@ const Avatar = (() => {
     const a = (UPPER * UPPER - FORE * FORE + d * d) / (2 * d), h = Math.sqrt(Math.max(0, UPPER * UPPER - a * a));
     const px = S[0] + dx / d * a, py = S[1] + dy / d * a, nx = -dy / d, ny = dx / d;
     const e1 = [px + nx * h, py + ny * h], e2 = [px - nx * h, py - ny * h];
-    const E = Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2;
+    // prefer the hinted side, but an elbow buried in the chest or raised above the shoulder is never natural
+    const bad = e => (b && Math.abs(e[0] - CX) < b.sw * 0.7 && e[1] < Y.waist) || e[1] < S[1] - 18;
+    let E = Math.hypot(e1[0] - E0[0], e1[1] - E0[1]) <= Math.hypot(e2[0] - E0[0], e2[1] - E0[1]) ? e1 : e2;
+    const other = E === e1 ? e2 : e1;
+    if (bad(E) && !bad(other)) E = other;
     return [S, E, H];
   }
+  /* ---- instrument rigs: one coordinate frame per neck instrument; the drawing AND the hand targets come from it,
+     so hands land exactly on the strings and the neck. Local frame: neck along -y (heel at -26, nut at -26-L),
+     strings on x = 0, local +x is the neck's lower edge on screen. ---- */
+  const RIGS = {
+    guitar: { O: [CX - 4, 194], th: 58, k: 1.3, L: 62, half: 4.5, fret: 0.6, strum: [1, 5], tail: [0, 32] },
+    bass:   { O: [CX - 2, 198], th: 60, k: 1.25, L: 78, half: 4.5, fret: 0.55, strum: [0, 0], tail: [0, 38] },
+    sitar:  { O: [CX - 8, 200], th: 52, k: 1.25, L: 110, half: 6, fret: 0.55, strum: [2, -36], tail: [0, 26], heel: -30, noStrap: true },
+    // keytar: drawn with its handle along +x at rotate(-24), i.e. this frame turned 90°; A plays the keys with an open hand
+    keys:   { O: [CX + 2, 186], th: 66, k: 1, L: 20, half: 3.5, fret: 0.5, heel: -44, keysHand: [-22, 16], noStrap: true },
+    // bowed strings: neck on the player's LEFT (viewer's right), fretted by arm B; arm A holds the bow
+    violin: { O: [CX + 18, 108], th: 68, k: 1.2, L: 34, half: 2.6, fret: 0.55, heel: -16, bow: { at: [0, 7], dir: [-0.42, 0.91], hand: 46, over: 26 }, noStrap: true },
+    cello:  { O: [CX + 6, 238], th: 12, k: 1, L: 96, half: 4, fret: 0.45, heel: -54, bow: { at: [0, -24], dir: [-0.97, 0.1], hand: 42, over: 34 }, noStrap: true },
+  };
+  const rw = (R, xl, yl) => { const t = R.th * Math.PI / 180, co = Math.cos(t), si = Math.sin(t); return [R.O[0] + R.k * (xl * co - yl * si), R.O[1] + R.k * (xl * si + yl * co)]; };
+  const rigFor = key => RIGS[key] || null;
+  /** Hand targets for a rigged instrument: fretting wrist just below the neck, strumming fist over the strings. */
+  function rigPose(R, b, sA, sB) {
+    const heel = R.heel ?? -26, yl = heel - R.L * R.fret;
+    const fretWrist = rw(R, R.half + 9 / R.k, yl + 9 / R.k);
+    const B = [sB, [CX + b.sw + 12, 168], fretWrist];
+    if (R.bow) {                                  // bow hand: back along the bow from where it crosses the strings
+      const at = rw(R, ...R.bow.at), d = R.bow.dir;
+      return { A: [sA, [CX - b.sw - 16, 170], [at[0] + d[0] * R.bow.hand, at[1] + d[1] * R.bow.hand]], B };
+    }
+    if (R.keysHand) return { A: [sA, [CX - b.sw - 14, 150], rw(R, ...R.keysHand)], B };
+    const fist = rw(R, R.strum[0], R.strum[1]);
+    return { A: [sA, [CX - b.sw - 14, 160], [fist[0] - 10, fist[1] - 4]], B };
+  }
+  /** Thumb tip of the fretting hand peeking over the top edge of the neck (drawn behind the instrument). */
+  function fretThumb(c, R) {
+    const heel = R.heel ?? -26, yl = heel - R.L * R.fret, t = R.th * Math.PI / 180, up = [-Math.cos(t), -Math.sin(t)], ax = [Math.sin(t), -Math.cos(t)];
+    const C = rw(R, 0, yl), hw = R.half * R.k, w = c.b.arm * 1.12, fw = w * 0.32;
+    const wid = c.a.outfit?.wrist?.id, col = (wid === 'fullgloves' || wid === 'longgloves') ? safe(c.a.outfit.wrist.color) : c.skin;
+    const a0 = [C[0] - ax[0] * fw, C[1] - ax[1] * fw], a1 = [a0[0] + up[0] * (hw + fw * 0.9) + ax[0] * fw * 0.6, a0[1] + up[1] * (hw + fw * 0.9) + ax[1] * fw * 0.6];
+    const d = `M${fx(a0)} L${fx(a1)}`;
+    return `<path d="${d}" stroke="${INK}" stroke-width="${fw + 4.4}" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="${fw}" stroke-linecap="round"/>`;
+  }
+  /** Fingers of the fretting hand, drawn OVER the fretboard (the palm and thumb sit behind the neck). */
+  function fretFingers(c, R) {
+    const heel = R.heel ?? -26, yl = heel - R.L * R.fret, t = R.th * Math.PI / 180;
+    const ax = [Math.sin(t), -Math.cos(t)], down = [Math.cos(t), Math.sin(t)];          // along the neck, toward its lower edge
+    const C = rw(R, 0, yl), hw = R.half * R.k, w = c.b.arm * 1.12, fw = w * 0.27;
+    const wid = c.a.outfit?.wrist?.id, full = wid === 'fullgloves' || wid === 'longgloves', glove = (wid === 'gloves' || full) ? safe(c.a.outfit.wrist.color || '#141014') : null;
+    let s = '';
+    [-1.5, -0.5, 0.5, 1.5].forEach((i, n) => {
+      const along = i * fw * 1.05 - fw * 0.4, base = [C[0] + ax[0] * along + down[0] * (hw + fw * 0.9), C[1] + ax[1] * along + down[1] * (hw + fw * 0.9)];
+      const tip = [C[0] + ax[0] * (along + fw * 0.3) - down[0] * (hw * 0.55), C[1] + ax[1] * (along + fw * 0.3) - down[1] * (hw * 0.55)];
+      const mid1 = [(base[0] + tip[0]) / 2 + ax[0] * fw * 0.5, (base[1] + tip[1]) / 2 + ax[1] * fw * 0.5];   // knuckle arches toward the headstock
+      const d = `M${fx(base)} Q${fx(mid1)} ${fx(tip)}`;
+      const col = full ? glove : c.skin;
+      s += `<path d="${d}" stroke="${INK}" stroke-width="${fw + 4.4}" stroke-linecap="round" fill="none"/><path d="${d}" stroke="${col}" stroke-width="${fw}" stroke-linecap="round" fill="none"/>`;
+      if (glove && !full) s += `<path d="M${fx(base)} L${fx([(base[0] * 0.55 + tip[0] * 0.45), (base[1] * 0.55 + tip[1] * 0.45)])}" stroke="${glove}" stroke-width="${fw}" stroke-linecap="butt" fill="none"/>`;
+      void n;
+    });
+    return s;
+  }
+
   /** Which drawing + pose a type/model pair uses. */
   function instKey(type, model) {
     if (type === 'vocals' && (model === 'stand' || model === 'vintagestand')) return 'stand';
@@ -195,7 +255,7 @@ const Avatar = (() => {
     return type;
   }
   // instruments whose far hand sits in front of the instrument
-  const FRONT_ARM = new Set(['cello', 'harp', 'sitar', 'synth', 'piano', 'decks', 'accordion', 'trombone', 'sax', 'trumpet', 'harmonica', 'boombox', 'marching']);
+  const FRONT_ARM = new Set(['harp', 'synth', 'piano', 'decks', 'accordion', 'trombone', 'sax', 'trumpet', 'harmonica', 'boombox', 'marching']);
 
   /* ---------------------------------------------------------------- primitives */
   const limbPath = pts => `M${pts.map(p => p.join(' ')).join(' L')}`;
@@ -721,9 +781,37 @@ const Avatar = (() => {
     return { len: topDef.sleeve === 'long' ? 1 : 0.45, item: top, sheer: topDef.sheer };
   }
 
+  /**
+   * A jointed limb: upper segment + round joint + lower segment, merged with the "outline under fill" trick so the
+   * union has one clean outer outline (rounded on the outside of the bend) and no lines inside; plus a crease
+   * on the inside of the bend. pts = [shoulder, elbow, wrist] (or [shoulder, end] for a short sleeve).
+   */
+  function jointed(pts, { ws, bulge = [0, 0], peak = [0.45, 0.22], fill, sw = 2.8, flatEnd = false, crease = true }) {
+    const pieces = [organic([pts[0], pts[1]], [ws[0], ws[1]], { bulge: [bulge[0]], peak: [peak[0]], flatEnd: pts.length === 2 && flatEnd })];
+    if (pts.length === 3) {
+      pieces.push(organic([pts[1], pts[2]], [ws[1] * 1.02, ws[2]], { bulge: [bulge[1]], peak: [peak[1]], flatEnd }));
+      const r = ws[1] / 2;
+      pieces.push(`M${pts[1][0] - r} ${pts[1][1]} a${r} ${r} 0 1 0 ${r * 2} 0 a${r} ${r} 0 1 0 ${-r * 2} 0 Z`);
+    }
+    let s = pieces.map(d => `<path d="${d}" fill="${INK}" stroke="${INK}" stroke-width="${sw * 2}" stroke-linejoin="round"/>`).join('')
+      + pieces.map(d => `<path d="${d}" fill="${fill}"/>`).join('');
+    if (crease && pts.length === 3) {
+      const [S, E, H] = pts, u = [E[0] - S[0], E[1] - S[1]], v = [H[0] - E[0], H[1] - E[1]];
+      const lu = Math.hypot(...u) || 1, lv = Math.hypot(...v) || 1, cosA = (u[0] * v[0] + u[1] * v[1]) / (lu * lv);
+      if (cosA < 0.92) {                                   // bent enough to show an inner crease
+        let ix = v[0] / lv - u[0] / lu, iy = v[1] / lv - u[1] / lu; const il = Math.hypot(ix, iy) || 1; ix /= il; iy /= il;
+        const r = ws[1] * 0.42, p0 = [E[0] + ix * r, E[1] + iy * r];
+        s += `<path d="M${fx([p0[0] - u[0] / lu * 5, p0[1] - u[1] / lu * 5])} Q${fx(p0)} ${fx([p0[0] + v[0] / lv * 5, p0[1] + v[1] / lv * 5])}" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".75"/>`;
+      }
+    }
+    return s;
+  }
+  /** Arm proportions: deltoid/bicep on the upper arm, forearm swelling below the elbow, slim wrist. */
+  const armSeg = b => ({ ws: [b.arm * 1.22, b.arm * 0.9, b.arm * 0.64], bulge: [b.arm * 0.42 * b.muscle + 1, b.arm * 0.34 * b.muscle + 1], peak: [0.42, 0.24] });
+
   function drawArm(c, key) {
-    const pts = c.pose[key], w = c.b.arm, skin = c.grad(c.skin), A = armShape(c.b);
-    let s = limb(pts, w, skin, true, A);
+    const pts = c.pose[key], w = c.b.arm, skin = c.grad(c.skin), A = armShape(c.b), G = armSeg(c.b);
+    let s = jointed(pts, { ...G, fill: skin });
     s += tattoosOn(c, key === 'A' ? ['armL_upper', 'armL_lower'] : ['armR_upper', 'armR_lower']);
     const sl = sleeveFor(c);
     if (sl) {
@@ -736,7 +824,12 @@ const Avatar = (() => {
         const ws = end.length === 3
           ? (fit === 'baggy' ? [A.ws[0] + add, A.ws[0] + add - 1, A.ws[0] + add + 3] : [A.ws[0] + add, A.ws[1] + add, A.ws[1] + add - 1])
           : (fit === 'baggy' ? [A.ws[0] + add, A.ws[0] + add + 4] : [A.ws[0] + add, A.ws[0] * 0.92 + add]);
-        s += limb(end, sw, c.fabric(sl.item), true, { ws, bulge: [A.bulge[0] * mb, A.bulge[1] * mb * 0.5], peak: A.peak, flatEnd: true });
+        void sw;
+        const sws = end.length === 3
+          ? (fit === 'baggy' ? [G.ws[0] + add, G.ws[0] + add - 2, G.ws[0] + add] : [G.ws[0] + add, G.ws[1] + add, G.ws[1] + add - 2])
+          : [G.ws[0] + add, (fit === 'baggy' ? G.ws[0] + add + 3 : G.ws[0] * 0.9 + add)];
+        ws.splice(0, ws.length, ...sws);
+        s += jointed(end, { ws: sws, bulge: [G.bulge[0] * mb, G.bulge[1] * mb * 0.5], peak: G.peak, fill: c.fabric(sl.item), flatEnd: true });
         // cuff / hem band
         const e1 = end[end.length - 1], e0 = end[end.length - 2], ca = ang(e0, e1);
         const cw = ws[ws.length - 1] * 1.02;
@@ -752,15 +845,21 @@ const Avatar = (() => {
         if (sl.item.id === 'furcoat') s += `<circle cx="${end[end.length - 1][0]}" cy="${end[end.length - 1][1]}" r="${w * 0.9}" fill="${shade(safe(sl.item.color), 0.4)}"/>`;
       }
     }
-    if (c.a.outfit?.wrist?.id === 'longgloves') s += limb([mid(pts[1], pts[2], 0.02), pts[2]], w, safe(c.a.outfit.wrist.color || '#3a1d4f'), true, { ws: [A.ws[1] + 2, A.ws[2] + 1.5], flatEnd: true });
+    if (c.a.outfit?.wrist?.id === 'longgloves') s += jointed([pts[1], pts[2]], { ws: [G.ws[1] + 2, G.ws[2] + 1.5], bulge: [G.bulge[1]], peak: [G.peak[1]], fill: safe(c.a.outfit.wrist.color || '#3a1d4f'), flatEnd: true });
     s += wristwear(c, pts);
     s += hand(c, pts, key);
     return s;
   }
 
+  /** Centre of a closed hand at the end of an arm chain (for things held in the fist: sticks, mics). */
+  function fistCenter(c, P) {
+    const a = ang(P[1], P[2]) * Math.PI / 180, w = c.b.arm * 1.12;
+    return [P[2][0] + Math.cos(a) * w * 0.62, P[2][1] + Math.sin(a) * w * 0.62];
+  }
   /** Hand at the end of a forearm. Styles: grip (fist around a neck/stick/mic), horns, open, relaxed. */
   function handStyle(c, key) {
     const t = c.pose.type, k = c.pose.key, stand = k === 'stand';
+    if (RIGS[k]) return key === 'B' ? 'fret' : RIGS[k].bow ? 'grip' : RIGS[k].keysHand ? 'open' : 'strum';
     if (['synth', 'piano', 'decks', 'harp'].includes(k)) return 'open';
     if (k === 'accordion' || k === 'harmonica') return 'grip';
     if (k === 'boombox') return key === 'A' ? 'horns' : 'grip';
@@ -791,6 +890,10 @@ const Avatar = (() => {
       g += `<path d="${hp}" fill="none" ${o}/>`;
       g += [-0.25, 0, 0.25].map(t => `<path d="M${w * 0.85} ${t * w * 1.6 + cv * 1.2} Q${w * 1.15} ${t * w * 1.55 + cv * 1.8} ${w * (L1 - 0.12)} ${t * w * 1.2 + cv * 2}" stroke="${shade(fc, -0.4)}" stroke-width="1.2" fill="none" stroke-linecap="round"/>`).join('');
       g += `<path d="M${w * 0.1} ${-flip * w * 0.32} Q${w * 0.5} ${-flip * w * 0.78} ${w * 0.95} ${-flip * w * 0.62} Q${w * 1.1} ${-flip * w * 0.48} ${w * 0.9} ${-flip * w * 0.36} Q${w * 0.6} ${-flip * w * 0.3} ${w * 0.35} ${-flip * w * 0.1}" fill="${fc}" ${o}/>`;
+    } else if (style === 'fret') {
+      // palm + thumb only: this part sits behind the neck; the fingers are drawn over the fretboard separately
+      const back = `M${-w * 0.25} ${-w * 0.36} C${w * 0.2} ${-w * 0.46} ${w * 0.55} ${-w * 0.5} ${w * 0.72} ${-w * 0.2} L${w * 0.72} ${w * 0.3} C${w * 0.5} ${w * 0.56} ${w * 0.2} ${w * 0.46} ${-w * 0.25} ${w * 0.36}`;
+      g += `<path d="${back} Z" fill="${palm}"/><path d="${back}" fill="none" ${o}/>`;
     } else {
       // fist: back of the hand flows out of the wrist (outlined on its sides only), four curled fingers, thumb wrapped over
       const back = `M${-w * 0.25} ${-w * 0.35} C${w * 0.25} ${-w * 0.44} ${w * 0.55} ${-w * 0.64} ${w * 0.9} ${-w * 0.6} L${w * 0.9} ${w * 0.6} C${w * 0.55} ${w * 0.64} ${w * 0.25} ${w * 0.44} ${-w * 0.25} ${w * 0.35}`;
@@ -805,6 +908,7 @@ const Avatar = (() => {
       });
       g += `<path d="M${w * 0.95} ${-w * 0.58} v${w * 1.16}" stroke="${shade(palm, -0.25)}" stroke-width="1" opacity=".5"/>`;
       g += finger(w * 0.12, -flip * w * 0.42, w * 0.82, w * 0.34, flip * 26);   // thumb across the front
+      if (style === 'strum') g += `<path d="M${w * 0.82} ${-flip * w * 0.02} l${w * 0.5} ${flip * w * 0.12} l${-w * 0.34} ${flip * w * 0.34} z" fill="#ffcc1a" stroke="${INK}" stroke-width="1.4" stroke-linejoin="round"/>`;
     }
     g += `<path d="M${-w * 0.1} ${w * 0.4} Q${w * 0.6} ${w * 0.75} ${w * 1.1} ${w * 0.45}" stroke="${INK}" stroke-width="0" fill="${INK}" opacity=".18"/>`;
     const tat = c.a.tattoos?.find(t => t.slot === 'hands');
@@ -1349,6 +1453,19 @@ const Avatar = (() => {
     pshape: 'M-12 -28 C-2 -36 10 -34 14 -26 C22 -10 18 0 18 8 C22 24 12 36 0 36 C-14 36 -24 26 -20 8 C-20 -2 -22 -18 -12 -28 Z',
     fivestring: 'M-12 -30 C-6 -40 0 -32 0 -26 C6 -38 18 -36 16 -22 C22 -8 14 -2 16 8 C20 24 12 36 0 36 C-14 36 -24 26 -18 10 C-16 0 -24 -16 -12 -30 Z',
   };
+  /** A bow: dark stick with a pale hair ribbon, from the bow hand across the strings. */
+  function bowLine(a, b) {
+    const d = `M${fx(a)} L${fx(b)}`;
+    return `<path d="${d}" stroke="${INK}" stroke-width="4.6" stroke-linecap="round"/><path d="${d}" stroke="#6b4428" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M${fx(a)} L${fx(b)}" stroke="#efe6cf" stroke-width="1" transform="translate(1.6 1.6)"/>`;
+  }
+  /** Strap: from the neck heel up over the far shoulder, and from the tail round under the strumming arm. */
+  function guitarStrap(c, R) {
+    const heel = rw(R, -R.half * 2.4, (R.heel ?? -26) + 4), tail = rw(R, R.tail[0], R.tail[1]), b = c.b;
+    const sh = [CX + b.sw - 8, Y.shoulder - capR(b) * 0.5], pit = [CX - b.sw + 2, Y.chest + 14];
+    const band = (d, col) => `<path d="${d}" stroke="${INK}" stroke-width="8" fill="none" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    return band(`M${fx(heel)} Q${fx([sh[0] + 4, (heel[1] + sh[1]) / 2])} ${fx(sh)}`, '#2a2522') + band(`M${fx(tail)} Q${fx([pit[0] - 6, (tail[1] + pit[1]) / 2 + 10])} ${fx(pit)}`, '#2a2522');
+  }
   function stringed(c, body, neckLen, strings, fill, extra = '') {
     const o = `stroke="${INK}" stroke-width="2" stroke-linejoin="round"`;
     let s = `<rect x="-4.5" y="${-neckLen - 26}" width="9" height="${neckLen + 20}" rx="2" fill="#5a3b26" ${o}/>`;
@@ -1368,15 +1485,17 @@ const Avatar = (() => {
     switch (key) {
       case 'cello': {
         const body = 'M-24 -60 C-8 -70 8 -70 24 -60 C30 -48 22 -36 20 -30 C38 -14 38 28 22 46 C10 56 -10 56 -22 46 C-38 28 -38 -14 -20 -30 C-22 -36 -30 -48 -24 -60 Z';
-        return `<g transform="translate(${CX - 2} 240)">
-          <line x1="0" y1="50" x2="0" y2="${Y.foot - 240}" stroke="#2b2b30" stroke-width="3"/>
+        const R = RIGS.cello, bw = R.bow, at = rw(R, ...bw.at), hA = c.pose.A[2];
+        const bowA = [hA[0] + 4, hA[1] + 2], bowB = [at[0] - bw.dir[0] * bw.over, at[1] - bw.dir[1] * bw.over];
+        return { armA: bowLine(bowA, bowB), front: `<g transform="translate(${R.O[0]} ${R.O[1]}) rotate(${R.th})">
+          <line x1="0" y1="50" x2="0" y2="${((Y.foot - R.O[1]) / Math.cos(R.th * Math.PI / 180)).toFixed(1)}" stroke="#2b2b30" stroke-width="3"/>
           <rect x="-4" y="-150" width="8" height="96" rx="2" fill="#16110d" ${O(2)}/>
           <path d="M-5 -150 q-8 -6 0 -14 q10 -2 9 8 q-2 4 -6 3" fill="${wood}" ${O(2)}/>
           <path d="${body}" fill="${wood}" ${O(3)}/>
           <path d="M-12 -14 q-5 12 0 24 M12 -14 q5 12 0 24" stroke="#1a0d06" stroke-width="2.4" fill="none"/>
           <rect x="-8" y="14" width="16" height="3" fill="#e8d6a8" ${O(1)}/><path d="M-6 38 l6 10 6 -10z" fill="#16110d"/>
           ${[-3, -1, 1, 3].map(x => `<line x1="${x}" y1="-150" x2="${x}" y2="40" stroke="#eee" stroke-width=".6"/>`).join('')}</g>
-          <line x1="${CX - 50}" y1="236" x2="${c.pose.B[2][0] + 8}" y2="${c.pose.B[2][1] + 2}" stroke="#5a3b26" stroke-width="2.6"/><line x1="${CX - 50}" y1="238" x2="${c.pose.B[2][0] + 8}" y2="${c.pose.B[2][1] + 4}" stroke="#e8e2d0" stroke-width="1"/>`;
+          ` };
       }
       case 'harp': {
         const x0 = CX - 40, x1 = CX + 46;
@@ -1389,7 +1508,8 @@ const Avatar = (() => {
       }
       case 'sitar': {
         let frets = ''; for (let i = 0; i < 12; i++) frets += `<path d="M-5 ${-40 - i * 8} h10" stroke="#e8d6a8" stroke-width="1.2"/>`;
-        return `<g transform="translate(${CX - 10} 196) rotate(52) scale(1.25)">
+        const R = RIGS.sitar;
+        return `<g transform="translate(${R.O[0]} ${R.O[1]}) rotate(${R.th}) scale(${R.k})">
           <rect x="-6" y="-140" width="12" height="110" rx="3" fill="${wood}" ${O(2)}/>${frets}
           <circle cx="0" cy="-118" r="9" fill="${shade(safe(ins.color || '#7a3b16'), -0.2)}" ${O(2)}/>
           <path d="M-7 -150 l-2 -10 h18 l-2 10z" fill="${wood}" ${O(2)}/>${[-150, -140, -130].map(y => `<rect x="-12" y="${y}" width="5" height="3" fill="#e8d6a8"/><rect x="7" y="${y + 4}" width="5" height="3" fill="#e8d6a8"/>`).join('')}
@@ -1398,7 +1518,7 @@ const Avatar = (() => {
           ${[-3, -1, 1, 3].map(x => `<line x1="${x}" y1="-150" x2="${x}" y2="16" stroke="#eee" stroke-width=".5"/>`).join('')}</g>`;
       }
       case 'synth': case 'piano': {
-        const w = key === 'piano' ? 150 : 130, y = 204;
+        const w = key === 'piano' ? 150 : 130, y = 190;
         let keys = '';
         for (let i = 0; i < 18; i++) keys += `<rect x="${CX - w / 2 + 6 + i * (w - 12) / 18}" y="${y}" width="${(w - 12) / 18 - 0.6}" height="13" fill="#fafafa" stroke="#222" stroke-width=".5"/>`;
         for (let i = 0; i < 17; i++) if (i % 7 !== 2 && i % 7 !== 6) keys += `<rect x="${CX - w / 2 + 6 + (i + 0.65) * (w - 12) / 18}" y="${y}" width="${(w - 12) / 30}" height="8" fill="#111"/>`;
@@ -1444,7 +1564,7 @@ const Avatar = (() => {
           <rect x="-6" y="-2.5" width="8" height="5" rx="1.5" fill="#c9ccd6"/></g>`;
       }
       case 'decks': {
-        const y = 200;
+        const y = 188;
         const deck = dx => `<ellipse cx="${CX + dx}" cy="${y + 8}" rx="24" ry="9" fill="#16141a" ${O(2)}/><ellipse cx="${CX + dx}" cy="${y + 8}" rx="8" ry="3" fill="${fill}"/><circle cx="${CX + dx}" cy="${y + 8}" r="1.4" fill="#ddd"/>`;
         return `<path d="M${CX - 62} ${y + 30} L${CX - 54} ${Y.foot} M${CX + 62} ${y + 30} L${CX + 54} ${Y.foot}" stroke="#2b2b30" stroke-width="4"/>
           <rect x="${CX - 70}" y="${y - 6}" width="140" height="36" rx="5" fill="#2a2731" ${O(2.8)}/>${deck(-38)}${deck(38)}
@@ -1462,10 +1582,14 @@ const Avatar = (() => {
       case 'marching': {
         const y = 200;
         let lugs = ''; for (let i = 0; i < 9; i++) lugs += `<path d="M${CX - 36 + i * 8.5} ${y + 5} l4.2 24 4.2 -24" stroke="#f2efe8" stroke-width="1.6" fill="none"/>`;
-        const sticks = [c.pose.A[2], c.pose.B[2]].map((h, i) => `<line x1="${h[0]}" y1="${h[1]}" x2="${h[0] + (i ? -12 : 12)}" y2="${h[1] - 32}" stroke="#d9b77c" stroke-width="3.4" stroke-linecap="round"/>`).join('');
+        const [stickA, stickB] = [c.pose.A, c.pose.B].map((P, i) => {
+          const f = fistCenter(c, P), tip = [CX + (i ? 6 : -6), y + 1], dx = tip[0] - f[0], dy = tip[1] - f[1], l = Math.hypot(dx, dy) || 1;
+          const d = `M${fx([f[0] - dx / l * 8, f[1] - dy / l * 8])} L${fx(tip)}`;
+          return `<path d="${d}" stroke="${INK}" stroke-width="5.6" stroke-linecap="round"/><path d="${d}" stroke="#d9b77c" stroke-width="3.2" stroke-linecap="round"/>`;
+        });
         return { back: `<path d="M${CX - 22} ${Y.shoulder} L${CX + 18} ${y} M${CX + 22} ${Y.shoulder} L${CX - 18} ${y}" stroke="#f2efe8" stroke-width="5"/>`,
           front: `<rect x="${CX - 40}" y="${y}" width="80" height="36" fill="${fill}" ${O(2.8)}/>${lugs}<ellipse cx="${CX}" cy="${y}" rx="40" ry="9" fill="#f3efe6" ${O(2.6)}/>
-            <rect x="${CX - 41}" y="${y + 31}" width="82" height="6" fill="#f2efe8" ${O(1.8)}/>${sticks}` };
+            <rect x="${CX - 41}" y="${y + 31}" width="82" height="6" fill="#f2efe8" ${O(1.8)}/>`, armA: stickA, armB: stickB };
       }
       case 'harmonica': {
         const x = M[0] + 1, y = M[1];
@@ -1487,12 +1611,14 @@ const Avatar = (() => {
           ins.model === 'acoustic' ? `<circle cx="0" cy="-2" r="7" fill="#1a0d06" ${o}/>` :
           ins.model === 'hollow' ? `<path d="M-10 -6 q-3 8 0 16 M10 -6 q3 8 0 16" stroke="#1a0d06" stroke-width="2.4" fill="none"/>` :
           `<rect x="-6" y="-14" width="12" height="5" rx="1" fill="#e6e6e6" ${o}/><rect x="-6" y="2" width="12" height="5" rx="1" fill="#e6e6e6" ${o}/><circle cx="12" cy="20" r="2" fill="#e6e6e6"/>`;
-        return `<g transform="translate(${CX - 6} 190) rotate(58) scale(1.3)">${stringed(c, body, 62, 6, fill, extra)}</g>`;
+        const R = RIGS.guitar;
+        return { back: guitarStrap(c, R), front: `<g transform="translate(${R.O[0]} ${R.O[1]}) rotate(${R.th}) scale(${R.k})">${stringed(c, body, R.L, 6, fill, extra)}</g>` };
       }
       case 'bass': {
         const body = BASS_BODIES[ins.model] || BASS_BODIES.classic;
         const extra = `<rect x="-7" y="-6" width="14" height="6" rx="2" fill="#1a1a1a"/>`;
-        return `<g transform="translate(${CX - 4} 194) rotate(60) scale(1.25)">${stringed(c, body, 78, ins.model === 'fivestring' ? 5 : 4, fill, extra)}</g>`;
+        const R = RIGS.bass;
+        return { back: guitarStrap(c, R), front: `<g transform="translate(${R.O[0]} ${R.O[1]}) rotate(${R.th}) scale(${R.k})">${stringed(c, body, R.L, ins.model === 'fivestring' ? 5 : 4, fill, extra)}</g>` };
       }
       case 'keys': {
         let keys = ''; for (let i = 0; i < 12; i++) keys += `<rect x="${-30 + i * 5}" y="-4" width="4.4" height="12" fill="#fafafa" stroke="#222" stroke-width=".5"/>`;
@@ -1507,30 +1633,39 @@ const Avatar = (() => {
           ${[84, 89, 94].map(y => `<line x1="${CX + 2}" y1="${y}" x2="${CX + 14}" y2="${y}" stroke="#555" stroke-width=".8"/>`).join('')}`;
         if (ins.model === 'stand') return `<line x1="${CX + 8}" y1="${Y.foot}" x2="${CX + 8}" y2="88" stroke="#2b2b30" stroke-width="3.5"/>
           <path d="M${CX - 6} ${Y.foot} l14 -8 14 8" stroke="#2b2b30" stroke-width="3" fill="none"/><rect x="${CX + 4}" y="74" width="8" height="18" rx="4" fill="${fill}" ${o}/>`;
-        const h = c.pose.B[2];
-        if (ins.model === 'vintage') return `<g transform="translate(${h[0]} ${h[1]}) rotate(-20)"><rect x="-3" y="-2" width="6" height="16" fill="#2b2b30"/><rect x="-8" y="-22" width="16" height="22" rx="7" fill="${c.grad('#c9ced8')}" ${o}/>
-          ${[-16, -11, -6].map(y => `<line x1="-7" y1="${y}" x2="7" y2="${y}" stroke="#555" stroke-width=".8"/>`).join('')}</g>`;
-        return `<g transform="translate(${h[0]} ${h[1]}) rotate(-30)"><rect x="-3.5" y="-4" width="7" height="22" rx="2" fill="${fill}" ${o}/><circle cx="0" cy="-8" r="7" fill="${c.grad('#9aa0aa')}" ${o}/>
-          <path d="M-5 -10 h10 M-5 -6 h10" stroke="#555" stroke-width=".7"/></g>`;
+        // mic sits in the fist and points at the mouth
+        const h = fistCenter(c, c.pose.B), hs = c.b.head, M = [CX + 1 * hs, 90 - 5 * hs - 7];
+        const ma = Math.atan2(M[1] - h[1], M[0] - h[0]) * 180 / Math.PI + 90;
+        if (ins.model === 'vintage') return { back: `<g transform="translate(${h[0]} ${h[1]}) rotate(${ma.toFixed(1)})"><g transform="translate(0 -6)"><rect x="-3" y="-2" width="6" height="16" fill="#2b2b30"/><rect x="-8" y="-22" width="16" height="22" rx="7" fill="${c.grad('#c9ced8')}" ${o}/>
+          ${[-16, -11, -6].map(y => `<line x1="-7" y1="${y}" x2="7" y2="${y}" stroke="#555" stroke-width=".8"/>`).join('')}</g></g>`, front: '' };
+        return { back: `<g transform="translate(${h[0]} ${h[1]}) rotate(${ma.toFixed(1)})"><rect x="-3.5" y="-10" width="7" height="24" rx="2" fill="${fill}" ${o}/><circle cx="0" cy="-15" r="7.5" fill="${c.grad('#9aa0aa')}" ${o}/>
+          <path d="M-5.5 -17 h11 M-5.5 -13 h11" stroke="#555" stroke-width=".7"/></g>`, front: '' };
       }
       case 'drums': {
         const glow = ins.model === 'glow', sc = glow ? safe(ins.color) : '#d9b77c';
-        const sticks = [c.pose.A[2], c.pose.B[2]].map((h, i) => `<line x1="${h[0]}" y1="${h[1]}" x2="${h[0] + (i ? 18 : -18)}" y2="${h[1] - 36}" stroke="${sc}" stroke-width="3.4" stroke-linecap="round"
-          ${glow ? `filter="drop-shadow(0 0 3px ${sc})"` : ''}/>`).join('');
+        const [stickA, stickB] = [c.pose.A, c.pose.B].map((P, i) => {
+          const f = fistCenter(c, P), tip = [CX + (i ? 8 : -8), 204];
+          const dx = tip[0] - f[0], dy = tip[1] - f[1], l = Math.hypot(dx, dy) || 1, back = [f[0] - dx / l * 8, f[1] - dy / l * 8];
+          const d = `M${fx(back)} L${fx(tip)}`;
+          return `<path d="${d}" stroke="${INK}" stroke-width="5.6" stroke-linecap="round"/><path d="${d}" stroke="${sc}" stroke-width="3.2" stroke-linecap="round" ${glow ? `filter="drop-shadow(0 0 3px ${sc})"` : ''}/>`;
+        });
         const pads = ins.model === 'electronic' && c.a.stageDrums !== false;
-        const snare = c.a.stageDrums === false ? '' : pads ? `<g transform="translate(${CX} 222)"><line x1="0" y1="8" x2="0" y2="${Y.foot - 222}" stroke="#2b2b30" stroke-width="3"/>
+        const snare = c.a.stageDrums === false ? '' : pads ? `<g transform="translate(${CX} 204)"><line x1="0" y1="8" x2="0" y2="${Y.foot - 204}" stroke="#2b2b30" stroke-width="3"/>
           ${[[-36, 2], [0, -6], [36, 2]].map(([x, y]) => `<path d="M${x - 18} ${y} l8 -9 h20 l8 9 -8 9 h-20z" fill="#25222c" ${o}/><path d="M${x - 13} ${y} l5 -5 h16 l5 5 -5 5 h-16z" fill="none" stroke="${safe(ins.color)}" stroke-width="1.8"/>`).join('')}</g>` :
-          `<g transform="translate(${CX} 222)"><rect x="-26" y="0" width="52" height="16" fill="${fill}" ${o}/><ellipse cx="0" cy="0" rx="26" ry="6" fill="#f3efe6" ${o}/>
-          <ellipse cx="0" cy="16" rx="26" ry="6" fill="${fill}" stroke="${INK}" stroke-width="2"/><line x1="-6" y1="22" x2="-14" y2="${Y.foot - 222}" stroke="#2b2b30" stroke-width="2"/><line x1="6" y1="22" x2="14" y2="${Y.foot - 222}" stroke="#2b2b30" stroke-width="2"/></g>`;
+          `<g transform="translate(${CX} 204)"><line x1="-6" y1="22" x2="-18" y2="${Y.foot - 204}" stroke="#2b2b30" stroke-width="2.4"/><line x1="6" y1="22" x2="18" y2="${Y.foot - 204}" stroke="#2b2b30" stroke-width="2.4"/><line x1="0" y1="22" x2="0" y2="${Y.foot - 204}" stroke="#2b2b30" stroke-width="2.4"/>
+          <rect x="-28" y="0" width="56" height="17" fill="${fill}" ${o}/><ellipse cx="0" cy="0" rx="28" ry="7" fill="#f3efe6" ${o}/>
+          <ellipse cx="0" cy="17" rx="28" ry="6" fill="${fill}" stroke="${INK}" stroke-width="2"/>${[-20, -10, 0, 10, 20].map(x => `<line x1="${x}" y1="3" x2="${x}" y2="20" stroke="#dfe3ea" stroke-width="1.2"/>`).join('')}</g>`;
         void pads;
-        return { back: snare, front: sticks };
+        return { back: snare, front: '', armA: stickA, armB: stickB };
       }
       case 'violin': {
+        const R = RIGS.violin, bw = R.bow, at = rw(R, ...bw.at), hA = c.pose.A[2];
         const body = 'M-8 -18 C-2 -22 2 -22 8 -18 C10 -14 7 -10 6 -8 C12 -2 12 10 6 16 C2 19 -2 19 -6 16 C-12 10 -12 -2 -6 -8 C-7 -10 -10 -14 -8 -18 Z';
-        const vio = `<g transform="translate(${CX + 28} 112) rotate(-70) scale(.95)"><rect x="-2.5" y="-50" width="5" height="34" fill="#1a0d06"/><path d="${body}" fill="${ins.model === 'electric' ? fill : finishFill(c, ins.color || '#8a3b12', ins.finish || 'sunburst')}" ${o}/>
-          <path d="M-4 -2 q-2 4 0 8 M4 -2 q2 4 0 8" stroke="#1a0d06" stroke-width="1.2" fill="none"/></g>`;
-        const a = c.pose.A[2];
-        return vio + `<line x1="${a[0] - 4}" y1="${a[1] + 2}" x2="${CX + 64}" y2="${100}" stroke="#d9c79a" stroke-width="1.8"/><line x1="${a[0] - 4}" y1="${a[1] + 2}" x2="${CX + 64}" y2="${100}" stroke="#5a3b26" stroke-width=".7" transform="translate(0 2)"/>`;
+        const vio = `<g transform="translate(${R.O[0]} ${R.O[1]}) rotate(${R.th}) scale(${R.k})"><rect x="-2.5" y="-50" width="5" height="34" rx="1" fill="#1a0d06" ${o}/>
+          <path d="M-2.5 -50 q-4 -2 -2 -6 q4 -2 5 2" fill="#5a2a10" ${o}/><path d="${body}" fill="${ins.model === 'electric' ? fill : finishFill(c, ins.color || '#8a3b12', ins.finish || 'sunburst')}" ${o}/>
+          <path d="M-4 -2 q-2 4 0 8 M4 -2 q2 4 0 8" stroke="#1a0d06" stroke-width="1.2" fill="none"/><rect x="-4" y="6" width="8" height="2" fill="#e8d6a8"/><path d="M-3 12 l3 5 3 -5z" fill="#1a0d06"/>
+          ${[-1.2, -0.4, 0.4, 1.2].map(x => `<line x1="${x}" y1="-50" x2="${x}" y2="12" stroke="#eee" stroke-width=".4"/>`).join('')}</g>`;
+        return { front: vio, armA: bowLine([hA[0] + 3, hA[1] + 1], [at[0] - bw.dir[0] * bw.over, at[1] - bw.dir[1] * bw.over]) };
       }
     }
     return '';
@@ -1551,6 +1686,7 @@ const Avatar = (() => {
     const instBack = typeof inst === 'object' ? inst.back || '' : '';
     const instFront = typeof inst === 'object' ? inst.front || '' : inst;
     const instPre = typeof inst === 'object' ? inst.preHead || '' : '';
+    const heldA = typeof inst === 'object' ? inst.armA || '' : '', heldB = typeof inst === 'object' ? inst.armB || '' : '';
     const front = FRONT_ARM.has(c.pose.key);
     const headXf = `translate(${CX} ${Y.neckTop - 1}) scale(${c.b.head.toFixed(3)}) translate(${-CX} ${-Y.neckTop - 6})`;
     const bt = a.outfit?.bottom, shoesFirst = ['gown', 'longskirt', 'flares'].includes(bt?.id) || (fitOf(bt) === 'baggy' && !['harem', 'shorts', 'skirt', 'kilt', 'tutu'].includes(bt?.id));
@@ -1591,10 +1727,10 @@ const Avatar = (() => {
           <g transform="translate(0 -5)">${drawHat(c)}</g>
         </g></g>
         ${instBack}
-        <g class="av-armB" style="transform-origin:${shoulderB[0]}px ${shoulderB[1]}px">${front ? '' : frontArm(armB, jB)}</g>
+        <g class="av-armB" style="transform-origin:${shoulderB[0]}px ${shoulderB[1]}px">${front ? '' : heldB + frontArm(armB, jB)}${RIGS[c.pose.key] ? fretThumb(c, RIGS[c.pose.key]) : ''}</g>
         <g class="av-inst">${instFront}</g>
-        <g class="av-armB2">${front ? frontArm(armB, jB) : ['guitar', 'bass', 'banjo'].includes(c.pose.key) ? hand(c, c.pose.B, 'B') : ''}</g>
-        <g class="av-armA" style="transform-origin:${shoulderA[0]}px ${shoulderA[1]}px">${frontArm(armA, jA)}</g>
+        <g class="av-armB2">${front ? heldB + frontArm(armB, jB) : RIGS[c.pose.key] ? fretFingers(c, RIGS[c.pose.key]) : ''}</g>
+        <g class="av-armA" style="transform-origin:${shoulderA[0]}px ${shoulderA[1]}px">${heldA}${frontArm(armA, jA)}</g>
       </g>`;
 
     const anim = opt.anim || 'idle';

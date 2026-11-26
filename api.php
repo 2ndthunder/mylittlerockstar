@@ -8,13 +8,25 @@ require __DIR__ . '/lib/catalog.php';
 require __DIR__ . '/lib/looks.php';
 require __DIR__ . '/lib/game.php';
 
+session_name('mlr_session');   // own cookie name: other localhost games (e.g. Nexokin) must not share our login
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 function out(array $d, int $code = 200): never { http_response_code($code); echo json_encode($d, JSON_UNESCAPED_UNICODE); exit; }
-function uid(): int { if (empty($_SESSION['uid'])) throw new GameError('Please log in.'); return (int)$_SESSION['uid']; }
+function uid(): int
+{
+    static $checked = null;
+    if (empty($_SESSION['uid'])) throw new GameError('Please log in.');
+    if ($checked === null) {   // a login must belong to a real account in this game's database
+        $st = db()->prepare('SELECT 1 FROM users WHERE id = ?');
+        $st->execute([(int)$_SESSION['uid']]);
+        $checked = (bool)$st->fetchColumn();
+        if (!$checked) { unset($_SESSION['uid']); throw new GameError('Please log in.'); }
+    }
+    return (int)$_SESSION['uid'];
+}
 function with_state(array $res): array { return $res + public_state(uid()) + ['csrf' => $_SESSION['csrf']]; }
 
 $in = json_decode(file_get_contents('php://input') ?: '[]', true) ?: [];
@@ -107,5 +119,8 @@ try {
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     error_log('[rockstar] ' . $e);
-    out(['error' => 'Something went wrong on the server.'] + (getenv('ROCKSTAR_DEBUG') ? ['debug' => $e->getMessage()] : []), 500);
+    @file_put_contents(__DIR__ . '/data/error.log', '[' . date('c') . "] $action: " . $e . "\n\n", FILE_APPEND);
+    // When playing locally (start.bat / php -S) show the real reason so problems are easy to report.
+    $local = PHP_SAPI === 'cli-server' || getenv('ROCKSTAR_DEBUG');
+    out(['error' => 'Something went wrong on the server.' . ($local ? ' (' . $e->getMessage() . ')' : '')], 500);
 }
